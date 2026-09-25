@@ -1,69 +1,66 @@
-# Renewo - Smart Subscription & Expense Manager
+<p align="center">
+  <img src="logo.svg" alt="Renewo Logo" width="100" />
+</p>
+
+<h1 align="center">Renewo</h1>
 
 <p align="center">
-  <img src="logo.svg" alt="Renewo Logo" width="120" />
+  <b>Take back control of your recurring expenses.</b><br>
+  A clean, fast, and thoughtful subscription manager built with Compose Multiplatform & Supabase.
 </p>
 
 <p align="center">
-  <b>A modern, beautiful, and secure cross-platform subscription tracker and expense management application.</b>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20Desktop-3DDC84?style=flat-square&logo=android" alt="Platforms" />
-  <img src="https://img.shields.io/badge/Kotlin%20Multiplatform-Compose-7F52FF?style=flat-square&logo=kotlin" alt="Kotlin Multiplatform" />
-  <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=flat-square&logo=supabase" alt="Supabase" />
-  <img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Kotlin_Multiplatform-Compose-7F52FF?style=flat-square&logo=kotlin&logoColor=white" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20Desktop-3DDC84?style=flat-square&logo=android&logoColor=white" />
+  <img src="https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-black?style=flat-square" />
 </p>
 
 ---
 
-## ✨ Features
+### Why Renewo?
 
-### 💳 Subscription Management
-- **Recurring Payment Tracking:** Track subscriptions across daily, weekly, monthly, and yearly billing cycles with automated monthly and annual cost normalizations.
-- **Quick Preset Selection:** Instant 1-tap addition for popular services (Netflix, Spotify, YouTube Premium, Amazon Prime, iCloud, Google One, Gym, ChatGPT Plus, GitHub, etc.) with pre-configured brand colors and logos.
-- **Service Details & External Links:** Store custom notes, account credentials/splits, and directly launch service websites via built-in browser integration.
-- **Active & Paused Controls:** Toggle subscriptions active or paused without deleting your payment records.
-- **Smart Renewal Alerts:** Customizable push notifications and in-app alerts configurable 1 to 7 days before any billing event.
-
-### 📊 Real-Time Analytics & Spending Insights
-- **Weekly & Monthly Trajectory:** Interactive expenditure breakdown charting daily spending distribution, peak expenditure days, and average daily burn rate.
-- **Dynamic Category Breakdown:** Visual progress indicators segmenting spend across Entertainment, Utilities, Cloud, Health & Fitness, Software, Education, and custom categories.
-- **Visual Budgeting & Caps:** Set monthly budget thresholds with real-time visual progress bars and dynamic over-budget warnings.
-
-### 🌍 Multi-Currency & Global Support
-- **Live Currency Conversion:** Seamlessly switch between USD (`$`), EUR (`€`), GBP (`£`), INR (`₹`), JPY (`¥`), CAD (`CA$`), and AUD (`A$`).
-- **Normalized Valuations:** All subscription costs automatically convert and re-calculate dynamically to match your active currency in real time.
-
-### ⚡ Offline-First Architecture & Zero-Delay Launch
-- **Instant Local Cache Hydration:** Zero-delay startup rendering powered by platform-native local storage. No blank loading screens or content flashes.
-- **Bidirectional Cloud Sync:** Seamless background synchronization with Supabase PostgreSQL. Work offline and changes automatically sync when reconnected.
-
-### 💎 Dual-Tier Plan System (Basic vs. Pro)
-- **Basic Tier:**
-  - Up to 10 active subscriptions.
-  - Top category analytics and spending summaries.
-  - Multi-currency conversions and renewal alerts.
-- **Renewo Pro Tier:**
-  - Track up to 200 subscriptions.
-  - Full granular category analytics and peak-spend day indicators.
-  - **Data Export:** Export your entire subscription portfolio and transaction log to CSV/JSON format.
-  - High-visibility Pro status indicator.
-
-### 🔒 Security & Data Privacy
-- **Supabase Authentication:** Secure email/password login, Google OAuth integration, and automatic token refresh management.
-- **Enterprise-Grade Sanitization:** Comprehensive client and database-level input validation preventing SQL injections, XSS, and payload overflow attacks.
-- **Row-Level Security (RLS):** Supabase database tables protected with strict user isolation policies so only authenticated users access their own data.
-
-### 🎨 Adaptive Design & Themes
-- **Dark, Light & System Themes:** Crafted following modern mobile UI guidelines with rich contrast, smooth transitions, and high readability.
-- **Custom Profile Avatars:** Personalize your account with custom display names and accent color selectors.
+Most people lose track of where their money goes each month between streaming platforms, cloud storage, software tools, and gym memberships. **Renewo** solves that. It gives you a clean, unified view of all your recurring bills, warns you before money leaves your account, and helps you stay within your monthly budget.
 
 ---
 
-## 👨‍💻 Developer Credit
+## What It Can Do
 
-Developed and engineered by **Rahul Misal** ([@CodesRahul96](https://github.com/CodesRahul96)).
+### 💳 Keep Every Subscription in One Place
+- **Flexible Billing Cycles:** Supports weekly, monthly, and yearly subscriptions, automatically calculating how much you're spending every month and year.
+- **1-Tap Quick Presets:** Add popular services like Netflix, Spotify, YouTube, iCloud, Prime, Google One, and ChatGPT with their native brand colors and logos pre-configured.
+- **Notes & Web Links:** Jot down login account hints or plan splits directly under a subscription, and open the service website with one tap to manage or cancel it.
+- **Pause Instead of Delete:** Temporarily put a subscription on hold if you're taking a break from it, without losing your billing history.
+- **Custom Renewal Alerts:** Get notified 1 to 7 days before your card gets charged so you're never surprised by unexpected renewals.
+
+### 📊 Understand Your Spending
+- **Weekly & Monthly Trends:** See a visual breakdown of your daily spending trajectory, highlighting peak burn days and daily averages.
+- **Category Insights:** Understand exactly how much you're spending across Entertainment, Utilities, Cloud Services, Fitness, Software, and more.
+- **Monthly Budget Guard:** Set a personal monthly budget limit with a live progress indicator that lets you know when you're getting close to your ceiling.
+
+### 🌍 Works With Your Local Currency
+- Switch seamlessly between **USD ($)**, **EUR (€)**, **GBP (£)**, **INR (₹)**, **JPY (¥)**, **CAD (CA$)**, and **AUD (A$)**.
+- Every single subscription dynamically normalizes to your preferred currency in real-time.
+
+### ⚡ Fast, Offline-First & Reliable
+- **Zero-Delay Startup:** Your subscriptions load immediately from device storage when you open the app. No blank screens or loading spinners.
+- **Cloud Sync:** Changes automatically back up to Supabase in the background whenever you're connected.
+
+### 💎 Basic & Pro Plans
+- **Basic:** Track up to 10 subscriptions with core analytics and multi-currency support.
+- **Pro:**
+  - Track up to 200 active subscriptions.
+  - Full analytics with all categories unlocked.
+  - Export your complete data to **CSV / JSON** anytime.
+
+---
+
+## 👨‍💻 Built With Love By
+
+**Rahul Misal**
+- GitHub: [@CodesRahul96](https://github.com/CodesRahul96)
+
+*Passionate about building clean, high-performance mobile apps with modern Android & Kotlin Multiplatform technologies.*
 
 ---
 
