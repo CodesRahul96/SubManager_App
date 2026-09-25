@@ -1,7 +1,7 @@
 # Renewo - Smart Subscription & Expense Manager
 
 <p align="center">
-  <img src="composeApp/src/commonMain/composeResources/drawable/splash_icon.png" alt="Renewo Logo" width="120" />
+  <img src="logo.svg" alt="Renewo Logo" width="120" />
 </p>
 
 <p align="center">
