@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -58,7 +59,7 @@ fun App(
         onThemeChanged(isDark)
     }
 
-    var lastBackPressTime by remember { mutableStateOf(0L) }
+    var lastBackPressTime by rememberSaveable { mutableStateOf(0L) }
 
     // Intercept back button to prevent accidental app exits
     BackHandler(enabled = true) {

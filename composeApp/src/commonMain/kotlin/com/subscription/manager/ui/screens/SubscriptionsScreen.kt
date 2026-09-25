@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subscription.manager.model.SubscriptionCategory
 import com.subscription.manager.theme.*
+import com.subscription.manager.ui.components.AppTextFieldDefaults
 import com.subscription.manager.ui.components.SubscriptionCard
 import com.subscription.manager.viewmodel.SortOption
 import com.subscription.manager.viewmodel.SubscriptionViewModel
@@ -99,16 +100,11 @@ fun SubscriptionsScreen(
             },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else appColors.cardBackground,
-                unfocusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else appColors.cardBackground,
-                focusedBorderColor = FigmaOrange,
-                unfocusedBorderColor = if (appColors.isDark) Color(0xFF282B36) else appColors.border,
-                focusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                unfocusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                focusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-                unfocusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted
+            colors = AppTextFieldDefaults.colors(
+                appColors = appColors,
+                containerColor = if (appColors.isDark) Color(0xFF14151B) else appColors.cardBackground
             ),
+            textStyle = AppTextFieldDefaults.textStyle(appColors),
             modifier = Modifier.fillMaxWidth()
         )
 

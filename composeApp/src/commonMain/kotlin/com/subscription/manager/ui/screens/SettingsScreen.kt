@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.subscription.manager.model.AppThemeMode
 import com.subscription.manager.model.Currency
 import com.subscription.manager.theme.*
+import com.subscription.manager.ui.components.AppTextFieldDefaults
 import com.subscription.manager.viewmodel.SubscriptionViewModel
 
 @Composable
@@ -47,7 +48,7 @@ fun SettingsScreen(
         val hex = currentUser?.avatarColorHex
         if (!hex.isNullOrBlank()) {
             try {
-                androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0x00000000FF000000)
+                androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0xFF000000L)
             } catch (e: Exception) {
                 FigmaOrange
             }
@@ -465,16 +466,11 @@ fun SettingsScreen(
                     placeholder = { Text("e.g. 1500") },
                     leadingIcon = { Text(selectedCurrency.symbol, fontWeight = FontWeight.Bold, color = FigmaOrange) },
                     singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                        unfocusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                        focusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite,
-                        unfocusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite,
-                        focusedBorderColor = FigmaOrange,
-                        unfocusedBorderColor = if (appColors.isDark) Color(0xFF333745) else appColors.border,
-                        focusedLabelColor = FigmaOrange,
-                        unfocusedLabelColor = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary
+                    colors = AppTextFieldDefaults.colors(
+                        appColors = appColors,
+                        containerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite
                     ),
+                    textStyle = AppTextFieldDefaults.textStyle(appColors),
                     shape = RoundedCornerShape(14.dp)
                 )
             },
@@ -556,7 +552,7 @@ fun SettingsScreen(
 
         val previewAvatarColor = remember(tempColor) {
             try {
-                androidx.compose.ui.graphics.Color(tempColor.removePrefix("#").toLong(16) or 0x00000000FF000000)
+                androidx.compose.ui.graphics.Color(tempColor.removePrefix("#").toLong(16) or 0xFF000000L)
             } catch (e: Exception) {
                 FigmaOrange
             }
@@ -612,16 +608,11 @@ fun SettingsScreen(
                         singleLine = true,
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                            unfocusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-                            focusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite,
-                            unfocusedContainerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite,
-                            focusedBorderColor = FigmaOrange,
-                            unfocusedBorderColor = if (appColors.isDark) Color(0xFF333745) else appColors.border,
-                            focusedLabelColor = FigmaOrange,
-                            unfocusedLabelColor = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary
-                        )
+                        colors = AppTextFieldDefaults.colors(
+                            appColors = appColors,
+                            containerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite
+                        ),
+                        textStyle = AppTextFieldDefaults.textStyle(appColors)
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
@@ -639,7 +630,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         profilePalette.take(4).forEach { hex ->
-                            val color = androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0x00000000FF000000)
+                            val color = androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0xFF000000L)
                             val isSelected = tempColor == hex
                             Surface(
                                 onClick = { tempColor = hex },
@@ -671,7 +662,7 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         profilePalette.drop(4).forEach { hex ->
-                            val color = androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0x00000000FF000000)
+                            val color = androidx.compose.ui.graphics.Color(hex.removePrefix("#").toLong(16) or 0xFF000000L)
                             val isSelected = tempColor == hex
                             Surface(
                                 onClick = { tempColor = hex },

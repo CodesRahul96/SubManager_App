@@ -36,7 +36,7 @@ fun TopHeader(
     val avatarBgColor = remember(avatarColorHex, appColors.isDark) {
         if (!avatarColorHex.isNullOrBlank()) {
             try {
-                Color(avatarColorHex.removePrefix("#").toLong(16) or 0x00000000FF000000)
+                Color(avatarColorHex.removePrefix("#").toLong(16) or 0xFF000000L)
             } catch (e: Exception) {
                 FigmaOrange
             }

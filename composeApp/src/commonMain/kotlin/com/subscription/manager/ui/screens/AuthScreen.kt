@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subscription.manager.theme.*
+import com.subscription.manager.ui.components.AppTextFieldDefaults
 import com.subscription.manager.viewmodel.SubscriptionViewModel
 import androidx.compose.foundation.text.selection.TextSelectionColors
 
@@ -150,36 +151,9 @@ fun AuthScreen(
             }
         }
 
-        val selColors = TextSelectionColors(
-            handleColor = FigmaOrange,
-            backgroundColor = FigmaOrange.copy(alpha = 0.3f)
-        )
-        val authTextFieldColors = OutlinedTextFieldDefaults.colors(
-            focusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-            unfocusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-            disabledTextColor = if (appColors.isDark) FigmaWhite.copy(alpha = 0.6f) else appColors.textPrimary.copy(alpha = 0.6f),
-            errorTextColor = FigmaDanger,
-            focusedContainerColor = if (appColors.isDark) Color(0xFF1A1C26) else appColors.cardBackground,
-            unfocusedContainerColor = if (appColors.isDark) Color(0xFF1A1C26) else appColors.cardBackground,
-            disabledContainerColor = if (appColors.isDark) Color(0xFF16181F) else Color(0xFFF5F5F5),
-            errorContainerColor = if (appColors.isDark) Color(0xFF1A1C26) else appColors.cardBackground,
-            focusedBorderColor = FigmaOrange,
-            unfocusedBorderColor = if (appColors.isDark) Color(0xFF2E3140) else appColors.border,
-            disabledBorderColor = if (appColors.isDark) Color(0xFF252736) else appColors.border.copy(alpha = 0.5f),
-            errorBorderColor = FigmaDanger,
-            focusedLabelColor = FigmaOrange,
-            unfocusedLabelColor = if (appColors.isDark) Color(0xFF9EA3B2) else appColors.textSecondary,
-            disabledLabelColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-            errorLabelColor = FigmaDanger,
-            focusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-            unfocusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-            cursorColor = FigmaOrange,
-            errorCursorColor = FigmaDanger,
-            selectionColors = selColors,
-            focusedLeadingIconColor = if (appColors.isDark) Color(0xFFA0A3AF) else appColors.textSecondary,
-            unfocusedLeadingIconColor = if (appColors.isDark) Color(0xFF7E8292) else appColors.textMuted,
-            focusedTrailingIconColor = if (appColors.isDark) Color(0xFFA0A3AF) else appColors.textSecondary,
-            unfocusedTrailingIconColor = if (appColors.isDark) Color(0xFF7E8292) else appColors.textMuted,
+        val authTextFieldColors = AppTextFieldDefaults.colors(
+            appColors = appColors,
+            containerColor = if (appColors.isDark) Color(0xFF1A1C26) else appColors.cardBackground
         )
 
         // Form Fields

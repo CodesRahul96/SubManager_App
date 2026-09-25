@@ -236,7 +236,7 @@ class SubscriptionViewModel(
             // Refresh detail if open
             val updated = subscriptions.value.find { it.id == id }
             if (updated != null && _uiState.value.detailSubscription?.id == id) {
-                _uiState.update { it.copy(detailSubscription = updated.copy(isActive = !updated.isActive)) }
+                _uiState.update { it.copy(detailSubscription = updated) }
             }
             showToast("Subscription status updated")
         }

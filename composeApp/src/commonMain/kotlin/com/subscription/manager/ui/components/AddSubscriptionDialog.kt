@@ -114,19 +114,11 @@ fun AddSubscriptionDialog(
     val dialogBg = if (appColors.isDark) Color(0xFF181A22) else FigmaWhite
     val dialogBorder = if (appColors.isDark) Color(0xFF282B36) else Color(0xFFE5E7EB)
 
-    val textFieldColors = OutlinedTextFieldDefaults.colors(
-        focusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-        unfocusedTextColor = if (appColors.isDark) FigmaWhite else appColors.textPrimary,
-        focusedContainerColor = if (appColors.isDark) Color(0xFF13141A) else Color(0xFFF9FAFB),
-        unfocusedContainerColor = if (appColors.isDark) Color(0xFF13141A) else Color(0xFFF9FAFB),
-        focusedBorderColor = FigmaOrange,
-        unfocusedBorderColor = if (appColors.isDark) Color(0xFF2E313E) else appColors.border,
-        focusedLabelColor = FigmaOrange,
-        unfocusedLabelColor = if (appColors.isDark) Color(0xFFA0A3AF) else appColors.textSecondary,
-        focusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-        unfocusedPlaceholderColor = if (appColors.isDark) Color(0xFF6B7082) else appColors.textMuted,
-        cursorColor = FigmaOrange
+    val textFieldColors = AppTextFieldDefaults.colors(
+        appColors = appColors,
+        containerColor = if (appColors.isDark) Color(0xFF13141A) else Color(0xFFF9FAFB)
     )
+    val fieldTextStyle = AppTextFieldDefaults.textStyle(appColors)
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -279,7 +271,8 @@ fun AddSubscriptionDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        colors = textFieldColors
+                        colors = textFieldColors,
+                        textStyle = fieldTextStyle
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -303,7 +296,8 @@ fun AddSubscriptionDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        colors = textFieldColors
+                        colors = textFieldColors,
+                        textStyle = fieldTextStyle
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -447,7 +441,8 @@ fun AddSubscriptionDialog(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        colors = textFieldColors
+                        colors = textFieldColors,
+                        textStyle = fieldTextStyle
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
@@ -585,7 +580,8 @@ fun AddSubscriptionDialog(
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
-                                colors = textFieldColors
+                                colors = textFieldColors,
+                                textStyle = fieldTextStyle
                             )
 
                             OutlinedTextField(
@@ -600,7 +596,8 @@ fun AddSubscriptionDialog(
                                 maxLines = 3,
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(14.dp),
-                                colors = textFieldColors
+                                colors = textFieldColors,
+                                textStyle = fieldTextStyle
                             )
                         }
                     }
