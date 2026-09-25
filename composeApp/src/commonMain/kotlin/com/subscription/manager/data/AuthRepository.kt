@@ -190,6 +190,32 @@ class AuthRepository(
         supabaseClient.updateProfile(fullName.trim(), avatarColorHex)
     }
 
+    /**
+     * Change user password
+     */
+    suspend fun changePassword(newPassword: String): Result<Unit> {
+        if (newPassword.length < 6) {
+            return Result.failure(IllegalArgumentException("Password must be at least 6 characters."))
+        }
+        val user = _currentUser.value ?: return Result.failure(IllegalStateException("No user logged in."))
+
+        // Update in fallback local cache if present
+        val cached = _registeredUsers[user.email]
+        if (cached != null) {
+            _registeredUsers[user.email] = cached.copy(passwordHash = hashPassword(newPassword))
+        }
+
+        // Update in remote Supabase Auth if session active
+        if (supabaseClient.isSessionActive) {
+            val res = supabaseClient.updatePassword(newPassword)
+            if (res.isFailure) {
+                return res
+            }
+        }
+        return Result.success(Unit)
+    }
+
+
     private fun isValidEmail(email: String): Boolean {
         return email.isNotBlank() && email.contains("@") && email.substringAfter("@").contains(".")
     }

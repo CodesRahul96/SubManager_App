@@ -232,6 +232,29 @@ class SupabaseClient {
         }
     }
 
+    suspend fun updatePassword(newPassword: String): Result<Unit> = withContext(Dispatchers.Default) {
+        val token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
+        try {
+            val response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                header("apikey", SupabaseConfig.ANON_KEY)
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf("password" to newPassword)
+                )
+            }
+            if (response.status.isSuccess()) {
+                Result.success(Unit)
+            } else {
+                val err = parseErrorMessage(response.bodyAsText())
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
     // ----------------------------------------------------
     // Database Operations (PostgreSQL via PostgREST)
     // ----------------------------------------------------

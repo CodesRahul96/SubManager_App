@@ -178,6 +178,19 @@ class SubscriptionViewModel(
         }
     }
 
+    fun changePassword(newPassword: String, onResult: (Boolean, String) -> Unit) {
+        scope.launch {
+            val res = authRepository.changePassword(newPassword)
+            if (res.isSuccess) {
+                showToast("Password updated successfully!")
+                onResult(true, "Password updated successfully!")
+            } else {
+                val errMsg = res.exceptionOrNull()?.message ?: "Failed to update password"
+                onResult(false, errMsg)
+            }
+        }
+    }
+
     fun selectTab(tab: AppTab) {
         _uiState.update { it.copy(activeTab = tab) }
     }

@@ -18,6 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.subscription.manager.model.AppThemeMode
@@ -43,6 +46,7 @@ fun SettingsScreen(
     var showThemeDialog by remember { mutableStateOf(false) }
     var showLogoutConfirm by remember { mutableStateOf(false) }
     var showProfileDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
 
     val avatarBgColor = remember(currentUser?.avatarColorHex) {
         val hex = currentUser?.avatarColorHex
@@ -137,6 +141,50 @@ fun SettingsScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // Section: Account & Security (Moved to top right under Profile)
+        item {
+            Text(
+                text = "Account & Security",
+                style = FigmaTypography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
+            )
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(22.dp),
+                color = if (appColors.isDark) Color(0xFF181A22) else appColors.cardBackground,
+                border = androidx.compose.foundation.BorderStroke(1.dp, if (appColors.isDark) Color(0xFF282B36) else appColors.border)
+            ) {
+                Column {
+                    SettingsItem(
+                        icon = Icons.Outlined.Email,
+                        title = "Account Email",
+                        subtitle = currentUser?.email ?: "local@device.user",
+                        onClick = { viewModel.showToast("Logged in as: ${currentUser?.email ?: "local@device.user"}") }
+                    )
+                    HorizontalDivider(color = if (appColors.isDark) Color(0xFF262934) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Outlined.Lock,
+                        title = "Change Password",
+                        subtitle = "Update your account login password",
+                        onClick = { showPasswordDialog = true }
+                    )
+                    HorizontalDivider(color = if (appColors.isDark) Color(0xFF262934) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(horizontal = 16.dp))
+                    SettingsItem(
+                        icon = Icons.Outlined.Logout,
+                        title = "Sign Out",
+                        subtitle = "Switch account or log out of this device",
+                        textColor = FigmaDanger,
+                        onClick = { showLogoutConfirm = true }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
         // Section: Appearance & Theme
@@ -240,56 +288,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // Section: Account & Security
-        item {
-            Text(
-                text = "Account & Security",
-                style = FigmaTypography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp)
-            )
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(22.dp),
-                color = if (appColors.isDark) Color(0xFF181A22) else appColors.cardBackground,
-                border = androidx.compose.foundation.BorderStroke(1.dp, if (appColors.isDark) Color(0xFF282B36) else appColors.border)
-            ) {
-                Column {
-                    SettingsItem(
-                        icon = Icons.Outlined.Palette,
-                        title = "Customize Profile & Colors",
-                        subtitle = "Change display name and avatar accent color",
-                        onClick = { showProfileDialog = true }
-                    )
-                    HorizontalDivider(color = if (appColors.isDark) Color(0xFF262934) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsItem(
-                        icon = Icons.Outlined.Email,
-                        title = "Account Email",
-                        subtitle = currentUser?.email ?: "local@device.user",
-                        onClick = { viewModel.showToast("Account: ${currentUser?.email ?: "local@device.user"}") }
-                    )
-                    HorizontalDivider(color = if (appColors.isDark) Color(0xFF262934) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsItem(
-                        icon = Icons.Outlined.Security,
-                        title = "Security & Encryption",
-                        subtitle = "TLS 1.3 • Row Level Security (RLS) Active",
-                        onClick = { viewModel.showToast("Your database is protected with PostgreSQL Row Level Security and SSL encryption") }
-                    )
-                    HorizontalDivider(color = if (appColors.isDark) Color(0xFF262934) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(horizontal = 16.dp))
-                    SettingsItem(
-                        icon = Icons.Outlined.Logout,
-                        title = "Sign Out",
-                        subtitle = "Switch account or log out of this device",
-                        textColor = FigmaDanger,
-                        onClick = { showLogoutConfirm = true }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-        }
 
         // Section: Data & Backup
         item {
@@ -325,7 +323,7 @@ fun SettingsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Subscription Manager v1.1.0 • Kotlin Multiplatform",
+                    text = "Subscription Manager v1.1.0",
                     fontSize = 12.sp,
                     color = if (appColors.isDark) Color(0xFF7E8292) else appColors.textMuted
                 )
@@ -703,6 +701,157 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showProfileDialog = false }) {
+                    Text("Cancel", color = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary)
+                }
+            }
+        )
+    }
+
+    // Change Password Dialog
+    if (showPasswordDialog) {
+        var newPassword by remember { mutableStateOf("") }
+        var confirmPassword by remember { mutableStateOf("") }
+        var passwordVisible by remember { mutableStateOf(false) }
+        var errorMsg by remember { mutableStateOf<String?>(null) }
+        var isSaving by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = {
+                if (!isSaving) showPasswordDialog = false
+            },
+            containerColor = if (appColors.isDark) Color(0xFF1C1E26) else FigmaWhite,
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = null,
+                        tint = FigmaOrange,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        "Change Password",
+                        fontWeight = FontWeight.Bold,
+                        color = if (appColors.isDark) FigmaWhite else appColors.textPrimary
+                    )
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Enter a new secure password of at least 6 characters.",
+                        style = FigmaTypography.bodySmall,
+                        color = if (appColors.isDark) Color(0xFF9EA3B2) else appColors.textSecondary
+                    )
+
+                    OutlinedTextField(
+                        value = newPassword,
+                        onValueChange = {
+                            newPassword = it
+                            errorMsg = null
+                        },
+                        label = { Text("New Password") },
+                        placeholder = { Text("At least 6 characters") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Outlined.Visibility else Icons.Outlined.VisibilityOff,
+                                    contentDescription = "Toggle password visibility",
+                                    tint = if (appColors.isDark) Color(0xFFA0A3AF) else appColors.textSecondary
+                                )
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = AppTextFieldDefaults.colors(
+                            appColors = appColors,
+                            containerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite
+                        ),
+                        textStyle = AppTextFieldDefaults.textStyle(appColors)
+                    )
+
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = {
+                            confirmPassword = it
+                            errorMsg = null
+                        },
+                        label = { Text("Confirm New Password") },
+                        placeholder = { Text("Re-enter new password") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Password),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = AppTextFieldDefaults.colors(
+                            appColors = appColors,
+                            containerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite
+                        ),
+                        textStyle = AppTextFieldDefaults.textStyle(appColors)
+                    )
+
+                    if (errorMsg != null) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = FigmaDanger.copy(alpha = 0.15f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, FigmaDanger.copy(alpha = 0.35f))
+                        ) {
+                            Text(
+                                text = errorMsg ?: "",
+                                color = FigmaDanger,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        when {
+                            newPassword.length < 6 -> {
+                                errorMsg = "Password must be at least 6 characters."
+                            }
+                            newPassword != confirmPassword -> {
+                                errorMsg = "Passwords do not match."
+                            }
+                            else -> {
+                                isSaving = true
+                                viewModel.changePassword(newPassword) { success, msg ->
+                                    isSaving = false
+                                    if (success) {
+                                        showPasswordDialog = false
+                                    } else {
+                                        errorMsg = msg
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = FigmaOrange),
+                    shape = RoundedCornerShape(12.dp),
+                    enabled = !isSaving
+                ) {
+                    Text(
+                        if (isSaving) "Updating..." else "Update Password",
+                        color = FigmaWhite,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showPasswordDialog = false },
+                    enabled = !isSaving
+                ) {
                     Text("Cancel", color = if (appColors.isDark) Color(0xFFB0B4C4) else appColors.textSecondary)
                 }
             }
