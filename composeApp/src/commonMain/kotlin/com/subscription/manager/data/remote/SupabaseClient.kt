@@ -152,6 +152,59 @@ class SupabaseClient {
         }
     }
 
+    fun getOAuthSignInUrl(provider: String = "google"): String {
+        return "${SupabaseConfig.PROJECT_URL}/auth/v1/authorize?provider=$provider&redirect_to=renewo://auth-callback"
+    }
+
+    suspend fun processOAuthSession(accessToken: String, refreshToken: String = ""): Result<Pair<User, Boolean>> = withContext(Dispatchers.Default) {
+        currentAccessToken = accessToken
+        if (refreshToken.isNotBlank()) {
+            currentRefreshToken = refreshToken
+        }
+        try {
+            val response = httpClient.get("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                header("apikey", SupabaseConfig.ANON_KEY)
+                header("Authorization", "Bearer $accessToken")
+            }
+            val body = response.bodyAsText()
+            if (response.status.isSuccess()) {
+                val userObj = json.parseToJsonElement(body).jsonObject
+                val userId = userObj["id"]?.jsonPrimitive?.contentOrNull
+                    ?: "usr_${Clock.System.now().toEpochMilliseconds()}"
+                currentUserId = userId
+                val userMetadata = userObj["user_metadata"]?.jsonObject
+                val email = userObj["email"]?.jsonPrimitive?.contentOrNull ?: ""
+                val extractedName = userMetadata?.get("full_name")?.jsonPrimitive?.contentOrNull
+                    ?: userMetadata?.get("name")?.jsonPrimitive?.contentOrNull
+                    ?: email.substringBefore("@").replace(".", " ").capitalizeWords()
+                val avatarColor = userMetadata?.get("avatar_color")?.jsonPrimitive?.contentOrNull
+                    ?: "#FF6B4A"
+
+                // Check if new user: createdAt within last 120 seconds or has_password flag is missing/false
+                val createdAtStr = userObj["created_at"]?.jsonPrimitive?.contentOrNull
+                val lastSignInAtStr = userObj["last_sign_in_at"]?.jsonPrimitive?.contentOrNull
+                val isNewUser = if (createdAtStr != null && lastSignInAtStr != null) {
+                    createdAtStr.take(19) == lastSignInAtStr.take(19)
+                } else {
+                    true
+                }
+
+                val user = User(
+                    id = userId,
+                    fullName = extractedName,
+                    email = email,
+                    avatarColorHex = avatarColor
+                )
+                Result.success(Pair(user, isNewUser))
+            } else {
+                val err = parseErrorMessage(body)
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun signUp(email: String, password: String, fullName: String): Result<User> = withContext(Dispatchers.Default) {
         try {
             val response = httpClient.post("${SupabaseConfig.PROJECT_URL}/auth/v1/signup") {

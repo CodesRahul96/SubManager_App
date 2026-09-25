@@ -34,7 +34,8 @@ data class AppUiState(
     val detailSubscription: Subscription? = null,
     val toastMessage: String? = null,
     val insightsSelectedDay: DaySpending? = null,
-    val isNewUserSetupRequired: Boolean = false
+    val isNewUserSetupRequired: Boolean = false,
+    val isOAuthPasswordSetupRequired: Boolean = false
 )
 
 class SubscriptionViewModel(
@@ -142,7 +143,35 @@ class SubscriptionViewModel(
     }
 
     fun completeNewUserSetup() {
-        _uiState.update { it.copy(isNewUserSetupRequired = false) }
+        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false) }
+    }
+
+    fun completeOAuthPasswordSetup() {
+        _uiState.update { it.copy(isOAuthPasswordSetupRequired = false, isNewUserSetupRequired = true) }
+    }
+
+    fun getOAuthSignInUrl(provider: String = "google"): String {
+        return authRepository.getOAuthSignInUrl(provider)
+    }
+
+    fun handleOAuthCallback(accessToken: String, refreshToken: String) {
+        scope.launch {
+            val result = authRepository.handleOAuthCallback(accessToken, refreshToken)
+            result.onSuccess { (user, isNewUser) ->
+                repository.setUserName(user.fullName)
+                repository.syncWithSupabase()
+                if (isNewUser) {
+                    _uiState.update { it.copy(isOAuthPasswordSetupRequired = true, isNewUserSetupRequired = false) }
+                    showToast("Welcome to Renewo, ${user.firstName}! Please create your password.")
+                } else {
+                    _uiState.update { it.copy(isOAuthPasswordSetupRequired = false, isNewUserSetupRequired = false) }
+                    showToast("Welcome back, ${user.firstName}!")
+                }
+            }
+            result.onFailure { e ->
+                showToast(e.message ?: "Authentication failed")
+            }
+        }
     }
 
     fun signIn(email: String, password: String) {
@@ -159,7 +188,7 @@ class SubscriptionViewModel(
     fun signOut() {
         authRepository.signOut()
         repository.setUserName("User")
-        _uiState.update { it.copy(isNewUserSetupRequired = false) }
+        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false) }
         showToast("Signed out successfully")
     }
 

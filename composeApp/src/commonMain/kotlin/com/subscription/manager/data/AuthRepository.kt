@@ -176,6 +176,39 @@ class AuthRepository(
         }
     }
 
+    fun getOAuthSignInUrl(provider: String = "google"): String {
+        return supabaseClient.getOAuthSignInUrl(provider)
+    }
+
+    suspend fun handleOAuthCallback(accessToken: String, refreshToken: String): Result<Pair<User, Boolean>> {
+        _isLoading.value = true
+        _authError.value = null
+        val result = supabaseClient.processOAuthSession(accessToken, refreshToken)
+        _isLoading.value = false
+
+        return if (result.isSuccess) {
+            val (user, isNewUser) = result.getOrThrow()
+            _currentUser.value = user
+            _isAuthenticated.value = true
+            _authError.value = null
+            sessionStorage.saveSession(
+                SavedSession(
+                    userId = user.id,
+                    token = accessToken,
+                    refreshToken = refreshToken,
+                    email = user.email,
+                    fullName = user.fullName,
+                    avatarColorHex = user.avatarColorHex
+                )
+            )
+            Result.success(Pair(user, isNewUser))
+        } else {
+            val msg = result.exceptionOrNull()?.message ?: "OAuth authentication failed."
+            _authError.value = msg
+            Result.failure(Exception(msg))
+        }
+    }
+
     /**
      * Sign out current user
      */

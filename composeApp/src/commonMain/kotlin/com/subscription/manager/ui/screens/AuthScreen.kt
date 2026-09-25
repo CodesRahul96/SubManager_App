@@ -151,6 +151,81 @@ fun AuthScreen(
             }
         }
 
+        // Google OAuth Button
+        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .clickable {
+                    val oauthUrl = viewModel.getOAuthSignInUrl("google")
+                    uriHandler.openUri(oauthUrl)
+                },
+            shape = RoundedCornerShape(16.dp),
+            color = if (appColors.isDark) Color(0xFF1E202B) else FigmaWhite,
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                if (appColors.isDark) Color(0xFF2E3242) else Color(0xFFE2E4EC)
+            ),
+            shadowElevation = if (appColors.isDark) 0.dp else 1.dp
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // Google "G" Logo emblem
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF4285F4)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "G",
+                        color = Color.White,
+                        fontWeight = FontWeight.Black,
+                        fontSize = 15.sp
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Continue with Google",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = appColors.textPrimary
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Divider: or continue with email
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = if (appColors.isDark) Color(0xFF2E3242) else Color(0xFFE5E7EB)
+            )
+            Text(
+                text = "or continue with email",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (appColors.isDark) Color(0xFF7E8292) else appColors.textMuted,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            HorizontalDivider(
+                modifier = Modifier.weight(1f),
+                color = if (appColors.isDark) Color(0xFF2E3242) else Color(0xFFE5E7EB)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
         val authTextFieldColors = AppTextFieldDefaults.colors(
             appColors = appColors,
             containerColor = if (appColors.isDark) Color(0xFF1A1C26) else appColors.cardBackground

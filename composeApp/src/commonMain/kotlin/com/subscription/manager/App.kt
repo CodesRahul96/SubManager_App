@@ -59,6 +59,13 @@ fun App(
         onThemeChanged(isDark)
     }
 
+    // Collect OAuth deep link tokens and authenticate
+    LaunchedEffect(Unit) {
+        com.subscription.manager.data.remote.OAuthBridge.oauthTokens.collect { (accessToken, refreshToken) ->
+            viewModel.handleOAuthCallback(accessToken, refreshToken)
+        }
+    }
+
     var lastBackPressTime by rememberSaveable { mutableStateOf(0L) }
 
     // Intercept back button to prevent accidental app exits
@@ -107,26 +114,45 @@ fun App(
                 .fillMaxSize()
                 .background(appColors.background)
         ) {
+            val authFlowState = when {
+                !isAuthenticated -> 0 // Auth Screen
+                uiState.isOAuthPasswordSetupRequired -> 1 // Create Password for OAuth users
+                uiState.isNewUserSetupRequired -> 2 // Onboarding Setup (Currency, Budget, Subscriptions)
+                else -> 3 // Dashboard
+            }
+
             AnimatedContent(
-                targetState = Pair(isAuthenticated, uiState.isNewUserSetupRequired),
+                targetState = authFlowState,
                 transitionSpec = {
                     fadeIn() togetherWith fadeOut()
                 },
                 modifier = Modifier.fillMaxSize()
-            ) { (authenticated, setupRequired) ->
-                if (!authenticated) {
-                    // Real User Authentication Screen (Sign Up / Sign In)
-                    AuthScreen(viewModel = viewModel)
-                } else if (setupRequired) {
-                    // New Account Onboarding & Setup Screen (Currency, Budget, Starter Subscriptions, Alerts)
-                    com.subscription.manager.ui.screens.OnboardingSetupScreen(
-                        viewModel = viewModel,
-                        onComplete = {
-                            viewModel.completeNewUserSetup()
-                        }
-                    )
-                } else {
-                    // Authenticated Main Dashboard
+            ) { state ->
+                when (state) {
+                    0 -> {
+                        // Real User Authentication Screen (Sign Up / Sign In / Google OAuth)
+                        AuthScreen(viewModel = viewModel)
+                    }
+                    1 -> {
+                        // OAuth New User Password Creation Step
+                        com.subscription.manager.ui.screens.OAuthPasswordSetupScreen(
+                            viewModel = viewModel,
+                            onPasswordSet = {
+                                viewModel.completeOAuthPasswordSetup()
+                            }
+                        )
+                    }
+                    2 -> {
+                        // New Account Onboarding & Setup Screen (Currency, Budget, Starter Subscriptions, Alerts)
+                        com.subscription.manager.ui.screens.OnboardingSetupScreen(
+                            viewModel = viewModel,
+                            onComplete = {
+                                viewModel.completeNewUserSetup()
+                            }
+                        )
+                    }
+                    else -> {
+                        // Authenticated Main Dashboard
                     Scaffold(
                         containerColor = appColors.background,
                         contentColor = appColors.textPrimary
@@ -204,6 +230,7 @@ fun App(
                     }
                 }
             }
+        }
 
             // Global Toast Notification Banner
             AnimatedVisibility(
