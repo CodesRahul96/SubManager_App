@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Background rounded square -->
+    <path
+        android:fillColor="#FF5A36"
+        android:pathData="M8,0 L40,0 C44.4,0 48,3.6 48,8 L48,40 C48,44.4 44.4,48 40,48 L8,48 C3.6,48 0,44.4 0,40 L0,8 C0,3.6 3.6,0 8,0 Z" />
+    
+    <!-- Subscription Card Body -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,16 L36,16 C38.2,16 40,17.8 40,20 L40,32 C40,34.2 38.2,36 36,36 L12,36 C9.8,36 8,34.2 8,32 L8,20 C8,17.8 9.8,16 12,16 Z" />
+    
+    <!-- Magnetic strip -->
+    <path
+        android:fillColor="#FF5A36"
+        android:pathData="M8,20 L40,20 L40,23 L8,23 Z" />
+
+    <!-- Chip -->
+    <path
+        android:fillColor="#FFD166"
+        android:pathData="M11,26 L17,26 C17.5,26 18,26.5 18,27 L18,31 C18,31.5 17.5,32 17,32 L11,32 C10.5,32 10,31.5 10,31 L10,27 C10,26.5 10.5,26 11,26 Z" />
+    
+    <!-- Refresh recurring arrow icon -->
+    <path
+        android:fillColor="#FF5A36"
+        android:pathData="M30,27 C28.9,27 28,27.9 28,29 L29,29 C29,28.4 29.4,28 30,28 C30.6,28 31,28.4 31,29 C31,29.6 30.6,30 30,30 L29.5,30 L29.5,31 L30,31 C31.1,31 32,30.1 32,29 C32,27.9 31.1,27 30,27 Z" />
+</vector>

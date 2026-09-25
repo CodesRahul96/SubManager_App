@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:translateX="0"
+        android:translateY="0">
+        <!-- Main Subscription Card Body -->
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M32,38 L76,38 C80.4,38 84,41.6 84,46 L84,68 C84,72.4 80.4,76 76,76 L32,76 C27.6,76 24,72.4 24,68 L24,46 C24,41.6 27.6,38 32,38 Z" />
+        
+        <!-- Card Magnetic Strip / Accent Line -->
+        <path
+            android:fillColor="#FF5A36"
+            android:pathData="M24,46 L84,46 L84,51 L24,51 Z" />
+        
+        <!-- Smart Chip / Logo on Card -->
+        <path
+            android:fillColor="#FFD166"
+            android:pathData="M31,56 L42,56 C43.1,56 44,56.9 44,58 L44,66 C44,67.1 43.1,68 42,68 L31,68 C29.9,68 29,67.1 29,66 L29,58 C29,56.9 29.9,56 31,56 Z" />
+
+        <!-- Subscription Recurring Arrows Symbol -->
+        <path
+            android:fillColor="#FF5A36"
+            android:pathData="M66,57 C63.8,57 62,58.8 62,61 L64,61 C64,59.9 64.9,59 66,59 C67.1,59 68,59.9 68,61 C68,62.1 67.1,63 66,63 L65,63 L65,65 L66,65 C68.2,65 70,63.2 70,61 C70,58.8 68.2,57 66,57 Z" />
+        <path
+            android:fillColor="#FF5A36"
+            android:pathData="M63,60 L60,63 L63,66 Z" />
+        <path
+            android:fillColor="#FF5A36"
+            android:pathData="M67,58 L70,55 L67,52 Z" />
+
+        <!-- Sparkle Star on top right of the card -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M81,32 C81,35 83,37 86,37 C83,37 81,39 81,42 C81,39 79,37 76,37 C79,37 81,35 81,32 Z" />
+    </group>
+</vector>
