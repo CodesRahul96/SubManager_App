@@ -33,10 +33,27 @@ class AuthRepository(
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
+        // Automatically hook token refresh listener to keep session persistence up to date
+        supabaseClient.onTokensRefreshed = { newAccessToken, newRefreshToken ->
+            val curr = _currentUser.value
+            if (curr != null) {
+                sessionStorage.saveSession(
+                    SavedSession(
+                        userId = curr.id,
+                        token = newAccessToken,
+                        refreshToken = newRefreshToken,
+                        email = curr.email,
+                        fullName = curr.fullName,
+                        avatarColorHex = curr.avatarColorHex
+                    )
+                )
+            }
+        }
+
         // Automatically restore persistent session on startup
         val saved = sessionStorage.getSavedSession()
         if (saved != null && saved.userId.isNotBlank()) {
-            supabaseClient.restoreSession(saved.userId, saved.token)
+            supabaseClient.restoreSession(saved.userId, saved.token, saved.refreshToken)
             _currentUser.value = User(
                 id = saved.userId,
                 fullName = saved.fullName,
@@ -97,6 +114,7 @@ class AuthRepository(
                 SavedSession(
                     userId = user.id,
                     token = supabaseClient.currentAccessToken ?: "",
+                    refreshToken = supabaseClient.currentRefreshToken ?: "",
                     email = user.email,
                     fullName = user.fullName,
                     avatarColorHex = user.avatarColorHex
@@ -144,6 +162,7 @@ class AuthRepository(
                 SavedSession(
                     userId = user.id,
                     token = supabaseClient.currentAccessToken ?: "",
+                    refreshToken = supabaseClient.currentRefreshToken ?: "",
                     email = user.email,
                     fullName = user.fullName,
                     avatarColorHex = user.avatarColorHex

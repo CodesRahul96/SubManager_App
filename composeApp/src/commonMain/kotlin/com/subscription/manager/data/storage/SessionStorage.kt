@@ -3,6 +3,7 @@ package com.subscription.manager.data.storage
 data class SavedSession(
     val userId: String,
     val token: String,
+    val refreshToken: String = "",
     val email: String,
     val fullName: String,
     val avatarColorHex: String

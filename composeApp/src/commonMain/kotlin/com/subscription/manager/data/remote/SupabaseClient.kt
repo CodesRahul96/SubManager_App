@@ -107,12 +107,50 @@ class SupabaseClient {
     var currentAccessToken: String? = null
         private set
 
-    fun restoreSession(userId: String, token: String) {
+    var currentRefreshToken: String? = null
+        private set
+
+    var onTokensRefreshed: ((accessToken: String, refreshToken: String) -> Unit)? = null
+
+    fun restoreSession(userId: String, token: String, refreshToken: String = "") {
         currentUserId = userId
         currentAccessToken = token
+        currentRefreshToken = refreshToken
     }
 
     val isSessionActive: Boolean get() = currentAccessToken != null
+
+    suspend fun refreshSession(): Result<String> = withContext(Dispatchers.Default) {
+        val rToken = currentRefreshToken
+        if (rToken.isNullOrBlank()) {
+            return@withContext Result.failure(Exception("Session expired. Please sign in again."))
+        }
+        try {
+            val response = httpClient.post("${SupabaseConfig.PROJECT_URL}/auth/v1/token?grant_type=refresh_token") {
+                header("apikey", SupabaseConfig.ANON_KEY)
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("refresh_token" to rToken))
+            }
+            val body = response.bodyAsText()
+            if (response.status.isSuccess()) {
+                val jsonObj = json.parseToJsonElement(body).jsonObject
+                val newAccessToken = jsonObj["access_token"]?.jsonPrimitive?.contentOrNull
+                val newRefreshToken = jsonObj["refresh_token"]?.jsonPrimitive?.contentOrNull ?: rToken
+                if (!newAccessToken.isNullOrBlank()) {
+                    currentAccessToken = newAccessToken
+                    currentRefreshToken = newRefreshToken
+                    onTokensRefreshed?.invoke(newAccessToken, newRefreshToken)
+                    Result.success(newAccessToken)
+                } else {
+                    Result.failure(Exception("Session expired. Please sign in again."))
+                }
+            } else {
+                Result.failure(Exception("Session expired. Please sign in again."))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     suspend fun signUp(email: String, password: String, fullName: String): Result<User> = withContext(Dispatchers.Default) {
         try {
@@ -142,6 +180,10 @@ class SupabaseClient {
                 val token = jsonObj["access_token"]?.jsonPrimitive?.contentOrNull
                 if (token != null) {
                     currentAccessToken = token
+                }
+                val refreshToken = jsonObj["refresh_token"]?.jsonPrimitive?.contentOrNull
+                if (refreshToken != null) {
+                    currentRefreshToken = refreshToken
                 }
 
                 val user = User(
@@ -177,6 +219,7 @@ class SupabaseClient {
             if (response.status.isSuccess()) {
                 val jsonObj = json.parseToJsonElement(body).jsonObject
                 currentAccessToken = jsonObj["access_token"]?.jsonPrimitive?.contentOrNull
+                currentRefreshToken = jsonObj["refresh_token"]?.jsonPrimitive?.contentOrNull
 
                 val userObj = jsonObj["user"]?.jsonObject
                 val userId = userObj?.get("id")?.jsonPrimitive?.contentOrNull
@@ -206,9 +249,9 @@ class SupabaseClient {
     }
 
     suspend fun updateProfile(fullName: String, avatarColorHex: String): Result<Unit> = withContext(Dispatchers.Default) {
-        val token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
+        var token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
         try {
-            val response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+            var response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
                 header("apikey", SupabaseConfig.ANON_KEY)
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
@@ -220,6 +263,25 @@ class SupabaseClient {
                         )
                     )
                 )
+            }
+            if (response.status.value == 401 || response.bodyAsText().contains("token is expired", ignoreCase = true)) {
+                val refreshRes = refreshSession()
+                if (refreshRes.isSuccess) {
+                    token = refreshRes.getOrThrow()
+                    response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                        header("apikey", SupabaseConfig.ANON_KEY)
+                        header("Authorization", "Bearer $token")
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            mapOf(
+                                "data" to mapOf(
+                                    "full_name" to fullName,
+                                    "avatar_color" to avatarColorHex
+                                )
+                            )
+                        )
+                    }
+                }
             }
             if (response.status.isSuccess()) {
                 Result.success(Unit)
@@ -233,15 +295,33 @@ class SupabaseClient {
     }
 
     suspend fun updatePassword(newPassword: String): Result<Unit> = withContext(Dispatchers.Default) {
-        val token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
+        var token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
         try {
-            val response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+            var response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
                 header("apikey", SupabaseConfig.ANON_KEY)
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
                 setBody(
                     mapOf("password" to newPassword)
                 )
+            }
+            // Auto-refresh expired JWT token seamlessly and retry once
+            val rawBody = response.bodyAsText()
+            if (response.status.value == 401 || rawBody.contains("token is expired", ignoreCase = true) || rawBody.contains("invalid claims", ignoreCase = true)) {
+                val refreshRes = refreshSession()
+                if (refreshRes.isSuccess) {
+                    token = refreshRes.getOrThrow()
+                    response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                        header("apikey", SupabaseConfig.ANON_KEY)
+                        header("Authorization", "Bearer $token")
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            mapOf("password" to newPassword)
+                        )
+                    }
+                } else {
+                    return@withContext Result.failure(Exception("Session expired. Please sign out and sign in again."))
+                }
             }
             if (response.status.isSuccess()) {
                 Result.success(Unit)
@@ -339,6 +419,7 @@ class SupabaseClient {
 
     fun signOut() {
         currentAccessToken = null
+        currentRefreshToken = null
         currentUserId = null
     }
 

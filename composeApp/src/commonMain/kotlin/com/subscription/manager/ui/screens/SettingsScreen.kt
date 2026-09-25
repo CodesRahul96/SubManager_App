@@ -816,9 +816,10 @@ fun SettingsScreen(
             confirmButton = {
                 Button(
                     onClick = {
+                        val validationErr = com.subscription.manager.util.SecurityValidator.validatePassword(newPassword)
                         when {
-                            newPassword.length < 6 -> {
-                                errorMsg = "Password must be at least 6 characters."
+                            validationErr != null -> {
+                                errorMsg = validationErr
                             }
                             newPassword != confirmPassword -> {
                                 errorMsg = "Passwords do not match."

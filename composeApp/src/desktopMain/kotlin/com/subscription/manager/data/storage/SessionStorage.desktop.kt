@@ -30,6 +30,7 @@ class DesktopSessionStorage : SessionStorage {
         val props = loadProps()
         props.setProperty("user_id", session.userId)
         props.setProperty("auth_token", session.token)
+        props.setProperty("refresh_token", session.refreshToken)
         props.setProperty("user_email", session.email)
         props.setProperty("user_name", session.fullName)
         props.setProperty("user_avatar", session.avatarColorHex)
@@ -40,16 +41,18 @@ class DesktopSessionStorage : SessionStorage {
         val props = loadProps()
         val userId = props.getProperty("user_id") ?: return null
         val token = props.getProperty("auth_token") ?: ""
+        val refreshToken = props.getProperty("refresh_token") ?: ""
         val email = props.getProperty("user_email") ?: ""
         val fullName = props.getProperty("user_name") ?: ""
         val avatar = props.getProperty("user_avatar") ?: "#FF6B4A"
-        return SavedSession(userId, token, email, fullName, avatar)
+        return SavedSession(userId, token, refreshToken, email, fullName, avatar)
     }
 
     override fun clearSession() {
         val props = loadProps()
         props.remove("user_id")
         props.remove("auth_token")
+        props.remove("refresh_token")
         props.remove("user_email")
         props.remove("user_name")
         props.remove("user_avatar")
