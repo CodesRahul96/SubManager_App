@@ -18,6 +18,36 @@
 
 ---
 
+## 📱 App Screenshots
+
+### Dark Mode
+<p align="center">
+  <img src="screenshots/organized/01_home_dark.jpg" width="19%" alt="Home Dashboard" />
+  <img src="screenshots/organized/02_subscriptions_dark.jpg" width="19%" alt="Subscriptions List" />
+  <img src="screenshots/organized/03_add_subscription_dark.jpg" width="19%" alt="Add Subscription" />
+  <img src="screenshots/organized/04_insights_dark.jpg" width="19%" alt="Spending Insights" />
+  <img src="screenshots/organized/05_settings_dark.jpg" width="19%" alt="Settings & Preferences" />
+</p>
+
+### Light Mode
+<p align="center">
+  <img src="screenshots/organized/08_home_light.jpg" width="19%" alt="Home Dashboard Light" />
+  <img src="screenshots/organized/09_subscriptions_light.jpg" width="19%" alt="Subscriptions List Light" />
+  <img src="screenshots/organized/10_add_subscription_light.jpg" width="19%" alt="Add Subscription Light" />
+  <img src="screenshots/organized/11_insights_light.jpg" width="19%" alt="Spending Insights Light" />
+  <img src="screenshots/organized/12_settings_light.jpg" width="19%" alt="Settings & Preferences Light" />
+</p>
+
+### Authentication
+<p align="center">
+  <img src="screenshots/organized/06_signin_dark.jpg" width="23%" alt="Sign In Dark" />
+  <img src="screenshots/organized/07_signup_dark.jpg" width="23%" alt="Sign Up Dark" />
+  <img src="screenshots/organized/13_signin_light.jpg" width="23%" alt="Sign In Light" />
+  <img src="screenshots/organized/14_signup_light.jpg" width="23%" alt="Sign Up Light" />
+</p>
+
+---
+
 ### Why Renewo?
 
 Most people lose track of where their money goes each month between streaming platforms, cloud storage, software tools, and gym memberships. **Renewo** solves that. It gives you a clean, unified view of all your recurring bills, warns you before money leaves your account, and helps you stay within your monthly budget.
