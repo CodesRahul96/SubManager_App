@@ -323,7 +323,7 @@ fun SettingsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Subscription Manager v1.1.0",
+                    text = "Renewo v1.1.0",
                     fontSize = 12.sp,
                     color = if (appColors.isDark) Color(0xFF7E8292) else appColors.textMuted
                 )

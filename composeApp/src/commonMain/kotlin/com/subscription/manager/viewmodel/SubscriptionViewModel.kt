@@ -136,7 +136,7 @@ class SubscriptionViewModel(
             result.onSuccess { user ->
                 repository.setUserName(user.fullName)
                 _uiState.update { it.copy(isNewUserSetupRequired = true) }
-                showToast("Welcome to Subscription Manager, ${user.firstName}!")
+                showToast("Welcome to Renewo, ${user.firstName}!")
             }
         }
     }

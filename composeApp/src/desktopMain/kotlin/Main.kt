@@ -9,7 +9,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         state = windowState,
-        title = "Subscription Manager"
+        title = "Renewo"
     ) {
         App()
     }
