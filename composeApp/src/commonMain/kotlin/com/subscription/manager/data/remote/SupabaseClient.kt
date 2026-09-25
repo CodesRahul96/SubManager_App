@@ -482,7 +482,7 @@ class SupabaseClient {
     suspend fun fetchSubscriptions(): Result<List<Subscription>> = withContext(Dispatchers.Default) {
         val token = currentAccessToken ?: return@withContext Result.success(emptyList())
         try {
-            val response = httpClient.get("${SupabaseConfig.PROJECT_URL}/rest/v1/subscriptions?select=*&limit=100&order=created_at.desc") {
+            val response = httpClient.get("${SupabaseConfig.PROJECT_URL}/rest/v1/subscriptions?select=*&limit=500&order=created_at.desc") {
                 header("apikey", SupabaseConfig.ANON_KEY)
                 header("Authorization", "Bearer $token")
             }

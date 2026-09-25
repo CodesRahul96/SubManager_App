@@ -93,24 +93,26 @@ fun AddSubscriptionDialog(
 ) {
     val appColors = LocalAppColors.current
 
-    var name by remember { mutableStateOf(subscriptionToEdit?.name ?: "") }
-    val initialPriceStr = subscriptionToEdit?.let { sub ->
-        val converted = sub.price * currentCurrency.rateToUsd
-        val rounded = kotlin.math.round(converted * 100.0) / 100.0
-        if (rounded % 1.0 == 0.0) rounded.toLong().toString() else rounded.toString()
-    } ?: ""
-    var priceStr by remember { mutableStateOf(initialPriceStr) }
-    var description by remember { mutableStateOf(subscriptionToEdit?.description ?: "") }
-    var selectedCycle by remember { mutableStateOf(subscriptionToEdit?.billingCycle ?: BillingCycle.MONTHLY) }
-    var selectedCategory by remember { mutableStateOf(subscriptionToEdit?.category ?: SubscriptionCategory.ENTERTAINMENT) }
-    var daysUntilRenewalStr by remember { mutableStateOf(subscriptionToEdit?.daysUntilRenewal?.toString() ?: "30") }
-    var selectedColor by remember { mutableStateOf(subscriptionToEdit?.colorHex ?: 0xFFFF6B4A) }
-    var reminderDays by remember { mutableStateOf(subscriptionToEdit?.reminderDaysBefore ?: 3) }
-    var notes by remember { mutableStateOf(subscriptionToEdit?.notes ?: "") }
-    var websiteUrl by remember { mutableStateOf(subscriptionToEdit?.websiteUrl ?: "") }
-    var showMoreOptions by remember { mutableStateOf(notes.isNotBlank() || websiteUrl.isNotBlank() || description.isNotBlank()) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isSubmitting by remember { mutableStateOf(false) }
+    var name by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.name ?: "") }
+    val initialPriceStr = remember(subscriptionToEdit, currentCurrency) {
+        subscriptionToEdit?.let { sub ->
+            val converted = sub.price * currentCurrency.rateToUsd
+            val rounded = kotlin.math.round(converted * 100.0) / 100.0
+            if (rounded % 1.0 == 0.0) rounded.toLong().toString() else rounded.toString()
+        } ?: ""
+    }
+    var priceStr by remember(subscriptionToEdit, currentCurrency) { mutableStateOf(initialPriceStr) }
+    var description by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.description ?: "") }
+    var selectedCycle by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.billingCycle ?: BillingCycle.MONTHLY) }
+    var selectedCategory by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.category ?: SubscriptionCategory.ENTERTAINMENT) }
+    var daysUntilRenewalStr by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.daysUntilRenewal?.toString() ?: "30") }
+    var selectedColor by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.colorHex ?: 0xFFFF6B4A) }
+    var reminderDays by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.reminderDaysBefore ?: 3) }
+    var notes by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.notes ?: "") }
+    var websiteUrl by remember(subscriptionToEdit) { mutableStateOf(subscriptionToEdit?.websiteUrl ?: "") }
+    var showMoreOptions by remember(subscriptionToEdit) { mutableStateOf(notes.isNotBlank() || websiteUrl.isNotBlank() || description.isNotBlank()) }
+    var errorMessage by remember(subscriptionToEdit) { mutableStateOf<String?>(null) }
+    var isSubmitting by remember(subscriptionToEdit) { mutableStateOf(false) }
 
     val dialogBg = if (appColors.isDark) Color(0xFF181A22) else FigmaWhite
     val dialogBorder = if (appColors.isDark) Color(0xFF282B36) else Color(0xFFE5E7EB)
