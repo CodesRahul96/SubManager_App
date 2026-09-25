@@ -15,6 +15,7 @@ class AndroidSessionStorage(
             .putString("user_email", session.email)
             .putString("user_name", session.fullName)
             .putString("user_avatar", session.avatarColorHex)
+            .putString("user_plan", session.plan)
             .apply()
     }
 
@@ -25,7 +26,8 @@ class AndroidSessionStorage(
         val email = prefs.getString("user_email", "") ?: ""
         val fullName = prefs.getString("user_name", "") ?: ""
         val avatar = prefs.getString("user_avatar", "#FF6B4A") ?: "#FF6B4A"
-        return SavedSession(userId, token, refreshToken, email, fullName, avatar)
+        val plan = prefs.getString("user_plan", "BASIC") ?: "BASIC"
+        return SavedSession(userId, token, refreshToken, email, fullName, avatar, plan)
     }
 
     override fun clearSession() {
@@ -36,6 +38,7 @@ class AndroidSessionStorage(
             .remove("user_email")
             .remove("user_name")
             .remove("user_avatar")
+            .remove("user_plan")
             .apply()
     }
 
@@ -70,6 +73,14 @@ class AndroidSessionStorage(
 
     override fun getSavedSubscriptionsJson(): String? {
         return prefs.getString("cached_subscriptions", null)
+    }
+
+    override fun saveUserPlan(plan: String) {
+        prefs.edit().putString("user_plan", plan).apply()
+    }
+
+    override fun getSavedUserPlan(): String? {
+        return prefs.getString("user_plan", null)
     }
 }
 

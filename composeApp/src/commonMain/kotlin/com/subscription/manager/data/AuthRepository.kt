@@ -44,7 +44,8 @@ class AuthRepository(
                         refreshToken = newRefreshToken,
                         email = curr.email,
                         fullName = curr.fullName,
-                        avatarColorHex = curr.avatarColorHex
+                        avatarColorHex = curr.avatarColorHex,
+                        plan = curr.plan.name
                     )
                 )
             }
@@ -54,19 +55,44 @@ class AuthRepository(
         val saved = sessionStorage.getSavedSession()
         if (saved != null && saved.userId.isNotBlank()) {
             supabaseClient.restoreSession(saved.userId, saved.token, saved.refreshToken)
+            val restoredPlan = try { com.subscription.manager.model.UserPlan.valueOf(saved.plan) } catch (e: Exception) { com.subscription.manager.model.UserPlan.BASIC }
             _currentUser.value = User(
                 id = saved.userId,
                 fullName = saved.fullName,
                 email = saved.email,
-                avatarColorHex = saved.avatarColorHex
+                avatarColorHex = saved.avatarColorHex,
+                plan = restoredPlan
             )
             _isAuthenticated.value = true
         }
     }
 
+    suspend fun syncUserProfileFromRemote(): Result<User> {
+        val res = supabaseClient.fetchCurrentUserProfile()
+        if (res.isSuccess) {
+            val user = res.getOrThrow()
+            _currentUser.value = user
+            sessionStorage.saveUserPlan(user.plan.name)
+            val saved = sessionStorage.getSavedSession()
+            if (saved != null) {
+                sessionStorage.saveSession(
+                    saved.copy(
+                        fullName = user.fullName,
+                        email = user.email,
+                        avatarColorHex = user.avatarColorHex,
+                        plan = user.plan.name
+                    )
+                )
+            }
+            return Result.success(user)
+        }
+        return res
+    }
+
     fun clearError() {
         _authError.value = null
     }
+
 
     /**
      * Sign up a new user with real Supabase credentials
@@ -165,7 +191,8 @@ class AuthRepository(
                     refreshToken = supabaseClient.currentRefreshToken ?: "",
                     email = user.email,
                     fullName = user.fullName,
-                    avatarColorHex = user.avatarColorHex
+                    avatarColorHex = user.avatarColorHex,
+                    plan = user.plan.name
                 )
             )
             Result.success(user)
@@ -198,7 +225,8 @@ class AuthRepository(
                     refreshToken = refreshToken,
                     email = user.email,
                     fullName = user.fullName,
-                    avatarColorHex = user.avatarColorHex
+                    avatarColorHex = user.avatarColorHex,
+                    plan = user.plan.name
                 )
             )
             Result.success(Pair(user, isNewUser))
@@ -221,6 +249,28 @@ class AuthRepository(
     }
 
     /**
+     * Upgrade or downgrade user plan
+     */
+    suspend fun upgradeToPlan(newPlan: com.subscription.manager.model.UserPlan): Result<Unit> {
+        val current = _currentUser.value ?: return Result.failure(Exception("Not logged in"))
+        val updated = current.copy(plan = newPlan)
+        _currentUser.value = updated
+        sessionStorage.saveUserPlan(newPlan.name)
+        sessionStorage.saveSession(
+            SavedSession(
+                userId = updated.id,
+                token = supabaseClient.currentAccessToken ?: "",
+                refreshToken = supabaseClient.currentRefreshToken ?: "",
+                email = updated.email,
+                fullName = updated.fullName,
+                avatarColorHex = updated.avatarColorHex,
+                plan = newPlan.name
+            )
+        )
+        return supabaseClient.updateUserPlan(newPlan)
+    }
+
+    /**
      * Update user profile
      */
     suspend fun updateProfile(fullName: String, avatarColorHex: String) {
@@ -234,9 +284,11 @@ class AuthRepository(
             SavedSession(
                 userId = updated.id,
                 token = supabaseClient.currentAccessToken ?: "",
+                refreshToken = supabaseClient.currentRefreshToken ?: "",
                 email = updated.email,
                 fullName = updated.fullName,
-                avatarColorHex = updated.avatarColorHex
+                avatarColorHex = updated.avatarColorHex,
+                plan = updated.plan.name
             )
         )
         supabaseClient.updateProfile(fullName.trim(), avatarColorHex)

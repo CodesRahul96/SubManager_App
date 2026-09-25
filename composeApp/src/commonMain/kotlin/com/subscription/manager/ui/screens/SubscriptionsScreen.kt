@@ -61,8 +61,12 @@ fun SubscriptionsScreen(
                     fontWeight = FontWeight.Bold,
                     color = appColors.textPrimary
                 )
+                val currentUser by viewModel.currentUser.collectAsState()
+                val isPro = currentUser?.isPro == true
+                val maxLimit = if (isPro) com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_PRO else com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_BASIC
+
                 Text(
-                    text = "${filteredSubs.size} services tracked",
+                    text = "${filteredSubs.size}/$maxLimit services • ${if (isPro) "Pro" else "Basic"}",
                     style = FigmaTypography.bodySmall,
                     color = appColors.textSecondary
                 )

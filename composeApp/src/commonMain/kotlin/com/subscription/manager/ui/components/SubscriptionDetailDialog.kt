@@ -142,6 +142,36 @@ fun SubscriptionDetailDialog(
                             DetailRow("Renewal Countdown", "${subscription.daysUntilRenewal} days remaining", appColors)
                             HorizontalDivider(color = if (appColors.isDark) Color(0xFF252834) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(vertical = 8.dp))
                             DetailRow("Reminder Alert", "${subscription.reminderDaysBefore} days before renew", appColors)
+                            if (subscription.notes.isNotBlank()) {
+                                HorizontalDivider(color = if (appColors.isDark) Color(0xFF252834) else appColors.border, thickness = 0.8.dp, modifier = Modifier.padding(vertical = 8.dp))
+                                DetailRow("Notes", subscription.notes, appColors)
+                            }
+                        }
+                    }
+
+                    if (subscription.websiteUrl.isNotBlank()) {
+                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = {
+                                val url = if (!subscription.websiteUrl.startsWith("http://") && !subscription.websiteUrl.startsWith("https://")) {
+                                    "https://${subscription.websiteUrl}"
+                                } else {
+                                    subscription.websiteUrl
+                                }
+                                try {
+                                    uriHandler.openUri(url)
+                                } catch (e: Exception) {
+                                    // ignore open uri error
+                                }
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, if (appColors.isDark) Color(0xFF2E3240) else Color(0xFFE5E7EB))
+                        ) {
+                            Icon(Icons.Default.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp), tint = FigmaOrange)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Visit Website", color = if (appColors.isDark) FigmaWhite else appColors.textPrimary, fontSize = 13.sp)
                         }
                     }
 

@@ -226,6 +226,14 @@ fun App(
                                     onDelete = { viewModel.deleteSubscription(sub.id) }
                                 )
                             }
+
+                            // Renewo Pro Upgrade Paywall Dialog
+                            if (uiState.isUpgradePaywallOpen) {
+                                com.subscription.manager.ui.components.UpgradePaywallDialog(
+                                    viewModel = viewModel,
+                                    onDismiss = { viewModel.closeUpgradePaywall() }
+                                )
+                            }
                         }
                     }
                 }

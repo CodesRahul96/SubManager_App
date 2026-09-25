@@ -42,8 +42,10 @@ fun InsightsScreen(
     val paymentHistory by viewModel.paymentHistory.collectAsState()
     val categoryBreakdown by viewModel.categoryBreakdown.collectAsState()
     val totalMonthlySpend by viewModel.totalMonthlySpend.collectAsState()
-
     val totalMonthlySpendFormatted = viewModel.formatCurrency(totalMonthlySpend)
+
+    val currentUser by viewModel.currentUser.collectAsState()
+    val isPro = currentUser?.isPro ?: false
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -67,7 +69,13 @@ fun InsightsScreen(
                 )
 
                 IconButton(
-                    onClick = { viewModel.showToast("Report exported for March 2026") },
+                    onClick = {
+                        if (isPro) {
+                            viewModel.showToast("Report exported for March 2026")
+                        } else {
+                            viewModel.openUpgradePaywall()
+                        }
+                    },
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
@@ -166,12 +174,33 @@ fun InsightsScreen(
                 color = appColors.cardBackground
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    Text(
-                        text = "Spending by Category",
-                        style = FigmaTypography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = appColors.textPrimary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Spending by Category",
+                            style = FigmaTypography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = appColors.textPrimary
+                        )
+
+                        if (isPro) {
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = FigmaOrange
+                            ) {
+                                Text(
+                                    text = "PRO ANALYTICS",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = FigmaWhite,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(14.dp))
 
@@ -184,7 +213,13 @@ fun InsightsScreen(
                         )
                     } else {
                         val total = categoryBreakdown.values.sum().coerceAtLeast(1.0)
-                        categoryBreakdown.entries.sortedByDescending { it.value }.take(4).forEach { (cat, amount) ->
+                        val displayCategories = if (isPro) {
+                            categoryBreakdown.entries.sortedByDescending { it.value }
+                        } else {
+                            categoryBreakdown.entries.sortedByDescending { it.value }.take(3)
+                        }
+
+                        displayCategories.forEach { (cat, amount) ->
                             val ratio = (amount / total).toFloat()
                             Column(modifier = Modifier.padding(vertical = 6.dp)) {
                                 Row(
@@ -214,6 +249,38 @@ fun InsightsScreen(
                                     color = Color(cat.defaultColorHex),
                                     trackColor = appColors.background
                                 )
+                            }
+                        }
+
+                        if (!isPro && categoryBreakdown.size > 3) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                onClick = { viewModel.openUpgradePaywall() },
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (appColors.isDark) Color(0xFF261D19) else Color(0xFFFFF7ED),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, FigmaOrange.copy(alpha = 0.35f)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "+${categoryBreakdown.size - 3} more categories available in Pro",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = FigmaOrange
+                                    )
+                                    Text(
+                                        text = "Unlock",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = FigmaOrange
+                                    )
+                                }
                             }
                         }
                     }

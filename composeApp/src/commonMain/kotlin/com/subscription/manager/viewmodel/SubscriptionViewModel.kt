@@ -35,7 +35,8 @@ data class AppUiState(
     val toastMessage: String? = null,
     val insightsSelectedDay: DaySpending? = null,
     val isNewUserSetupRequired: Boolean = false,
-    val isOAuthPasswordSetupRequired: Boolean = false
+    val isOAuthPasswordSetupRequired: Boolean = false,
+    val isUpgradePaywallOpen: Boolean = false
 )
 
 class SubscriptionViewModel(
@@ -126,6 +127,7 @@ class SubscriptionViewModel(
         if (restoredUser != null) {
             repository.setUserName(restoredUser.fullName)
             scope.launch {
+                authRepository.syncUserProfileFromRemote()
                 repository.syncWithSupabase()
             }
         }
@@ -250,9 +252,31 @@ class SubscriptionViewModel(
 
     private var lastSaveTimestamp: Long = 0L
 
+    fun openUpgradePaywall() {
+        _uiState.update { it.copy(isUpgradePaywallOpen = true) }
+    }
+
+    fun closeUpgradePaywall() {
+        _uiState.update { it.copy(isUpgradePaywallOpen = false) }
+    }
+
+    fun upgradeToPro(onSuccess: () -> Unit = {}) {
+        scope.launch {
+            val res = authRepository.upgradeToPlan(UserPlan.PRO)
+            if (res.isSuccess) {
+                showToast("🎉 Welcome to Renewo Pro! All features unlocked.")
+                closeUpgradePaywall()
+                onSuccess()
+            } else {
+                showToast(res.exceptionOrNull()?.message ?: "Upgrade failed. Please try again.")
+            }
+        }
+    }
+
     fun openAddDialog(subscription: Subscription? = null) {
-        if (subscription == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size)) {
-            showToast("Subscription limit reached (Max ${com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_PER_USER}). Delete unused subscriptions to add more.")
+        val userIsPro = currentUser.value?.isPro ?: false
+        if (subscription == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size, userIsPro)) {
+            openUpgradePaywall()
             return
         }
         _uiState.update {
@@ -337,8 +361,9 @@ class SubscriptionViewModel(
             return
         }
 
-        if (id == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size)) {
-            showToast("Maximum subscription limit of ${com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_PER_USER} reached.")
+        val userIsPro = currentUser.value?.isPro ?: false
+        if (id == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size, userIsPro)) {
+            openUpgradePaywall()
             return
         }
 
@@ -412,6 +437,21 @@ class SubscriptionViewModel(
     fun clearAllData() {
         repository.clearAllData()
         showToast("All data cleared")
+    }
+
+    fun exportDataAsCsv(): String {
+        val subs = subscriptions.value
+        val sb = StringBuilder()
+        sb.append("ID,Name,Category,Price,Currency,BillingCycle,NextBillingDate,Active,Notes,Website\n")
+        subs.forEach { sub ->
+            val escapedName = "\"${sub.name.replace("\"", "\"\"")}\""
+            val escapedCategory = "\"${sub.category.displayName}\""
+            val escapedNotes = "\"${sub.notes.replace("\"", "\"\"")}\""
+            val escapedWebsite = "\"${sub.websiteUrl.replace("\"", "\"\"")}\""
+            sb.append("${sub.id},$escapedName,$escapedCategory,${sub.price},${sub.originalCurrency.code},${sub.billingCycle.name},${sub.nextBillingDateFormatted},${sub.isActive},$escapedNotes,$escapedWebsite\n")
+        }
+        showToast("Exported ${subs.size} subscriptions as CSV!")
+        return sb.toString()
     }
 
     fun showToast(msg: String) {

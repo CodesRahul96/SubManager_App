@@ -34,17 +34,19 @@ object SecurityValidator {
         return null
     }
 
-    const val MAX_SUBSCRIPTIONS_PER_USER = 50
+    const val MAX_SUBSCRIPTIONS_BASIC = 10
+    const val MAX_SUBSCRIPTIONS_PRO = 200
     const val MAX_NAME_LENGTH = 60
     const val MAX_DESC_LENGTH = 200
     const val MAX_NOTES_LENGTH = 500
     const val MAX_URL_LENGTH = 250
 
     /**
-     * Validates whether user can add another subscription
+     * Validates whether user can add another subscription given their current plan
      */
-    fun canAddSubscription(currentCount: Int): Boolean {
-        return currentCount < MAX_SUBSCRIPTIONS_PER_USER
+    fun canAddSubscription(currentCount: Int, isPro: Boolean = false): Boolean {
+        val limit = if (isPro) MAX_SUBSCRIPTIONS_PRO else MAX_SUBSCRIPTIONS_BASIC
+        return currentCount < limit
     }
 
     /**

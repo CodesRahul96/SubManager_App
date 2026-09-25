@@ -34,6 +34,7 @@ class DesktopSessionStorage : SessionStorage {
         props.setProperty("user_email", session.email)
         props.setProperty("user_name", session.fullName)
         props.setProperty("user_avatar", session.avatarColorHex)
+        props.setProperty("user_plan", session.plan)
         saveProps(props)
     }
 
@@ -45,7 +46,8 @@ class DesktopSessionStorage : SessionStorage {
         val email = props.getProperty("user_email") ?: ""
         val fullName = props.getProperty("user_name") ?: ""
         val avatar = props.getProperty("user_avatar") ?: "#FF6B4A"
-        return SavedSession(userId, token, refreshToken, email, fullName, avatar)
+        val plan = props.getProperty("user_plan") ?: "BASIC"
+        return SavedSession(userId, token, refreshToken, email, fullName, avatar, plan)
     }
 
     override fun clearSession() {
@@ -56,6 +58,7 @@ class DesktopSessionStorage : SessionStorage {
         props.remove("user_email")
         props.remove("user_name")
         props.remove("user_avatar")
+        props.remove("user_plan")
         saveProps(props)
     }
 
@@ -97,6 +100,16 @@ class DesktopSessionStorage : SessionStorage {
 
     override fun getSavedSubscriptionsJson(): String? {
         return loadProps().getProperty("cached_subscriptions")
+    }
+
+    override fun saveUserPlan(plan: String) {
+        val props = loadProps()
+        props.setProperty("user_plan", plan)
+        saveProps(props)
+    }
+
+    override fun getSavedUserPlan(): String? {
+        return loadProps().getProperty("user_plan")
     }
 }
 

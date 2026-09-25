@@ -69,7 +69,8 @@ fun HomeScreen(
                 },
                 onSearchClick = {
                     viewModel.selectTab(AppTab.SUBSCRIPTIONS)
-                }
+                },
+                isPro = currentUser?.isPro ?: false
             )
         }
 

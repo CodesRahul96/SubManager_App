@@ -118,11 +118,28 @@ fun SettingsScreen(
                             fontWeight = FontWeight.Bold,
                             color = appColors.textPrimary
                         )
-                        Text(
-                            text = currentUser?.email ?: "Free Tier • Local Account",
-                            style = FigmaTypography.bodySmall,
-                            color = if (appColors.isDark) Color(0xFF9EA3B2) else appColors.textSecondary
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = currentUser?.email ?: "Local Account",
+                                style = FigmaTypography.bodySmall,
+                                color = if (appColors.isDark) Color(0xFF9EA3B2) else appColors.textSecondary
+                            )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (currentUser?.isPro == true) FigmaOrange else (if (appColors.isDark) Color(0xFF2E313E) else Color(0xFFE5E7EB))
+                            ) {
+                                Text(
+                                    text = if (currentUser?.isPro == true) "PRO" else "BASIC",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = if (currentUser?.isPro == true) FigmaWhite else (if (appColors.isDark) Color(0xFFB0B4C4) else Color(0xFF4B5563)),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                         Text(
                             text = "Tap to customize name & avatar color",
                             fontSize = 11.sp,
@@ -140,7 +157,110 @@ fun SettingsScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Pro Membership Card / Banner
+            if (currentUser?.isPro != true) {
+                Surface(
+                    onClick = { viewModel.openUpgradePaywall() },
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (appColors.isDark) Color(0xFF261D19) else Color(0xFFFFF7ED),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, FigmaOrange.copy(alpha = 0.4f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(FigmaOrange),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = null,
+                                    tint = FigmaWhite,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = "Upgrade to Pro",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = if (appColors.isDark) FigmaWhite else FigmaTextPrimary
+                                )
+                                Text(
+                                    text = "Track up to 200 subscriptions & unlock CSV export",
+                                    fontSize = 11.sp,
+                                    color = if (appColors.isDark) Color(0xFFD1D5DB) else Color(0xFF6B7280)
+                                )
+                            }
+                        }
+
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowForwardIos,
+                            contentDescription = null,
+                            tint = FigmaOrange,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = if (appColors.isDark) Color(0xFF1E2822) else Color(0xFFECFDF5),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.35f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF10B981)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = FigmaWhite,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "Renewo Pro Active",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = if (appColors.isDark) FigmaWhite else FigmaTextPrimary
+                            )
+                            Text(
+                                text = "Up to 200 subscriptions • All features unlocked",
+                                fontSize = 11.sp,
+                                color = if (appColors.isDark) Color(0xFFD1D5DB) else Color(0xFF6B7280)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         // Section: Account & Security (Moved to top right under Profile)
@@ -308,9 +428,15 @@ fun SettingsScreen(
                 Column {
                     SettingsItem(
                         icon = Icons.Outlined.FileDownload,
-                        title = "Export Data",
-                        subtitle = "Export subscriptions as JSON / CSV",
-                        onClick = { viewModel.showToast("Exported all subscriptions successfully!") }
+                        title = "Export Data (CSV / JSON)",
+                        subtitle = if (currentUser?.isPro == true) "Export subscriptions & billing history" else "Pro feature • Export subscriptions as CSV",
+                        onClick = {
+                            if (currentUser?.isPro == true) {
+                                viewModel.exportDataAsCsv()
+                            } else {
+                                viewModel.openUpgradePaywall()
+                            }
+                        }
                     )
                 }
             }
@@ -444,7 +570,7 @@ fun SettingsScreen(
             val rounded = kotlin.math.round(currentBudgetInSelected * 100.0) / 100.0
             if (rounded % 1.0 == 0.0) rounded.toLong().toString() else rounded.toString()
         }
-        var budgetInput by remember { mutableStateOf(initialInput) }
+        var budgetInput by remember(showBudgetDialog, monthlyBudget, selectedCurrency) { mutableStateOf(initialInput) }
         AlertDialog(
             onDismissRequest = { showBudgetDialog = false },
             containerColor = if (appColors.isDark) Color(0xFF1C1E26) else FigmaWhite,
@@ -464,6 +590,9 @@ fun SettingsScreen(
                     placeholder = { Text("e.g. 1500") },
                     leadingIcon = { Text(selectedCurrency.symbol, fontWeight = FontWeight.Bold, color = FigmaOrange) },
                     singleLine = true,
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                    ),
                     colors = AppTextFieldDefaults.colors(
                         appColors = appColors,
                         containerColor = if (appColors.isDark) Color(0xFF14151B) else FigmaWhite

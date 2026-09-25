@@ -179,6 +179,8 @@ class SupabaseClient {
                     ?: email.substringBefore("@").replace(".", " ").capitalizeWords()
                 val avatarColor = userMetadata?.get("avatar_color")?.jsonPrimitive?.contentOrNull
                     ?: "#FF6B4A"
+                val planStr = userMetadata?.get("plan")?.jsonPrimitive?.contentOrNull ?: "BASIC"
+                val userPlan = try { UserPlan.valueOf(planStr) } catch (e: Exception) { UserPlan.BASIC }
 
                 // Check if new user: createdAt within last 120 seconds or has_password flag is missing/false
                 val createdAtStr = userObj["created_at"]?.jsonPrimitive?.contentOrNull
@@ -193,7 +195,8 @@ class SupabaseClient {
                     id = userId,
                     fullName = extractedName,
                     email = email,
-                    avatarColorHex = avatarColor
+                    avatarColorHex = avatarColor,
+                    plan = userPlan
                 )
                 Result.success(Pair(user, isNewUser))
             } else {
@@ -204,6 +207,43 @@ class SupabaseClient {
             Result.failure(e)
         }
     }
+
+    suspend fun fetchCurrentUserProfile(): Result<User> = withContext(Dispatchers.Default) {
+        val token = currentAccessToken ?: return@withContext Result.failure(Exception("No token"))
+        try {
+            val response = httpClient.get("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                header("apikey", SupabaseConfig.ANON_KEY)
+                header("Authorization", "Bearer $token")
+            }
+            val body = response.bodyAsText()
+            if (response.status.isSuccess()) {
+                val userObj = json.parseToJsonElement(body).jsonObject
+                val userId = userObj["id"]?.jsonPrimitive?.contentOrNull ?: currentUserId ?: ""
+                val userMetadata = userObj["user_metadata"]?.jsonObject
+                val email = userObj["email"]?.jsonPrimitive?.contentOrNull ?: ""
+                val extractedName = userMetadata?.get("full_name")?.jsonPrimitive?.contentOrNull
+                    ?: userMetadata?.get("name")?.jsonPrimitive?.contentOrNull
+                    ?: email.substringBefore("@").replace(".", " ").capitalizeWords()
+                val avatarColor = userMetadata?.get("avatar_color")?.jsonPrimitive?.contentOrNull ?: "#FF6B4A"
+                val planStr = userMetadata?.get("plan")?.jsonPrimitive?.contentOrNull ?: "BASIC"
+                val userPlan = try { UserPlan.valueOf(planStr) } catch (e: Exception) { UserPlan.BASIC }
+
+                val user = User(
+                    id = userId,
+                    fullName = extractedName,
+                    email = email,
+                    avatarColorHex = avatarColor,
+                    plan = userPlan
+                )
+                Result.success(user)
+            } else {
+                Result.failure(Exception("Failed to fetch user profile: ${response.status}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     suspend fun signUp(email: String, password: String, fullName: String): Result<User> = withContext(Dispatchers.Default) {
         try {
@@ -284,12 +324,15 @@ class SupabaseClient {
                     ?: email.substringBefore("@").replace(".", " ").capitalizeWords()
                 val avatarColor = userMetadata?.get("avatar_color")?.jsonPrimitive?.contentOrNull
                     ?: "#FF6B4A"
+                val planStr = userMetadata?.get("plan")?.jsonPrimitive?.contentOrNull ?: "BASIC"
+                val userPlan = try { UserPlan.valueOf(planStr) } catch (e: Exception) { UserPlan.BASIC }
 
                 val user = User(
                     id = userId,
                     fullName = extractedName,
                     email = email,
-                    avatarColorHex = avatarColor
+                    avatarColorHex = avatarColor,
+                    plan = userPlan
                 )
                 Result.success(user)
             } else {
@@ -330,6 +373,50 @@ class SupabaseClient {
                                 "data" to mapOf(
                                     "full_name" to fullName,
                                     "avatar_color" to avatarColorHex
+                                )
+                            )
+                        )
+                    }
+                }
+            }
+            if (response.status.isSuccess()) {
+                Result.success(Unit)
+            } else {
+                val err = parseErrorMessage(response.bodyAsText())
+                Result.failure(Exception(err))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateUserPlan(plan: UserPlan): Result<Unit> = withContext(Dispatchers.Default) {
+        var token = currentAccessToken ?: return@withContext Result.failure(Exception("Not signed in"))
+        try {
+            var response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                header("apikey", SupabaseConfig.ANON_KEY)
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "data" to mapOf(
+                            "plan" to plan.name
+                        )
+                    )
+                )
+            }
+            if (response.status.value == 401 || response.bodyAsText().contains("token is expired", ignoreCase = true)) {
+                val refreshRes = refreshSession()
+                if (refreshRes.isSuccess) {
+                    token = refreshRes.getOrThrow()
+                    response = httpClient.put("${SupabaseConfig.PROJECT_URL}/auth/v1/user") {
+                        header("apikey", SupabaseConfig.ANON_KEY)
+                        header("Authorization", "Bearer $token")
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            mapOf(
+                                "data" to mapOf(
+                                    "plan" to plan.name
                                 )
                             )
                         )

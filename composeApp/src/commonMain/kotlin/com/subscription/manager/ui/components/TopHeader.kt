@@ -29,6 +29,7 @@ fun TopHeader(
     onSearchClick: () -> Unit,
     userInitials: String? = null,
     avatarColorHex: String? = null,
+    isPro: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val appColors = LocalAppColors.current
@@ -88,12 +89,31 @@ fun TopHeader(
                     style = FigmaTypography.bodySmall,
                     color = appColors.textSecondary
                 )
-                Text(
-                    text = userName,
-                    style = FigmaTypography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = appColors.textPrimary
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = userName,
+                        style = FigmaTypography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = appColors.textPrimary
+                    )
+                    if (isPro) {
+                        androidx.compose.material3.Surface(
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
+                            color = FigmaOrange
+                        ) {
+                            Text(
+                                text = "PRO",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = FigmaWhite,
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
 

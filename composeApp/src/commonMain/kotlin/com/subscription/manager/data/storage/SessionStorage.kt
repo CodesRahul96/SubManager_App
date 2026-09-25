@@ -6,7 +6,8 @@ data class SavedSession(
     val refreshToken: String = "",
     val email: String,
     val fullName: String,
-    val avatarColorHex: String
+    val avatarColorHex: String,
+    val plan: String = "BASIC"
 )
 
 interface SessionStorage {
@@ -25,6 +26,9 @@ interface SessionStorage {
 
     fun saveSubscriptionsJson(json: String)
     fun getSavedSubscriptionsJson(): String?
+
+    fun saveUserPlan(plan: String)
+    fun getSavedUserPlan(): String?
 }
 
 expect fun createSessionStorage(): SessionStorage
