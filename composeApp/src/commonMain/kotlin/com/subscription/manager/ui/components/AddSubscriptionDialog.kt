@@ -110,6 +110,7 @@ fun AddSubscriptionDialog(
     var websiteUrl by remember { mutableStateOf(subscriptionToEdit?.websiteUrl ?: "") }
     var showMoreOptions by remember { mutableStateOf(notes.isNotBlank() || websiteUrl.isNotBlank() || description.isNotBlank()) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isSubmitting by remember { mutableStateOf(false) }
 
     val dialogBg = if (appColors.isDark) Color(0xFF181A22) else FigmaWhite
     val dialogBorder = if (appColors.isDark) Color(0xFF282B36) else Color(0xFFE5E7EB)
@@ -651,13 +652,27 @@ fun AddSubscriptionDialog(
 
                     Button(
                         onClick = {
+                            if (isSubmitting) return@Button
+                            val trimmedName = name.trim()
                             val parsedPrice = priceStr.toDoubleOrNull()
-                            if (name.isBlank()) {
+                            if (trimmedName.isBlank()) {
                                 errorMessage = "Please enter a service name"
                                 return@Button
                             }
-                            if (parsedPrice == null || parsedPrice <= 0) {
-                                errorMessage = "Please enter a valid price greater than 0"
+                            if (trimmedName.length > com.subscription.manager.util.SecurityValidator.MAX_NAME_LENGTH) {
+                                errorMessage = "Name too long (Max ${com.subscription.manager.util.SecurityValidator.MAX_NAME_LENGTH} characters)"
+                                return@Button
+                            }
+                            if (notes.length > com.subscription.manager.util.SecurityValidator.MAX_NOTES_LENGTH) {
+                                errorMessage = "Notes too long (Max ${com.subscription.manager.util.SecurityValidator.MAX_NOTES_LENGTH} characters)"
+                                return@Button
+                            }
+                            if (websiteUrl.length > com.subscription.manager.util.SecurityValidator.MAX_URL_LENGTH) {
+                                errorMessage = "URL too long (Max ${com.subscription.manager.util.SecurityValidator.MAX_URL_LENGTH} characters)"
+                                return@Button
+                            }
+                            if (parsedPrice == null || parsedPrice <= 0 || parsedPrice > 999_999.0) {
+                                errorMessage = "Please enter a valid price between 0.01 and 999,999"
                                 return@Button
                             }
                             val days = daysUntilRenewalStr.toIntOrNull() ?: 30
@@ -671,9 +686,10 @@ fun AddSubscriptionDialog(
                                 else -> "Next Year"
                             }
 
+                            isSubmitting = true
                             onSave(
                                 subscriptionToEdit?.id,
-                                name.trim(),
+                                trimmedName,
                                 description.trim().ifEmpty { "${selectedCycle.displayName} plan" },
                                 parsedPrice,
                                 currentCurrency,
@@ -689,14 +705,23 @@ fun AddSubscriptionDialog(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = FigmaOrange),
                         modifier = Modifier.weight(1.3f).height(50.dp),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        enabled = !isSubmitting
                     ) {
-                        Text(
-                            text = if (subscriptionToEdit == null) "Add Subscription" else "Save Changes",
-                            color = FigmaWhite,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
+                        if (isSubmitting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = FigmaWhite,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = if (subscriptionToEdit == null) "Add Subscription" else "Save Changes",
+                                color = FigmaWhite,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp
+                            )
+                        }
                     }
                 }
             }

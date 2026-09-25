@@ -248,7 +248,13 @@ class SubscriptionViewModel(
         _uiState.update { it.copy(insightsSelectedDay = day) }
     }
 
+    private var lastSaveTimestamp: Long = 0L
+
     fun openAddDialog(subscription: Subscription? = null) {
+        if (subscription == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size)) {
+            showToast("Subscription limit reached (Max ${com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_PER_USER}). Delete unused subscriptions to add more.")
+            return
+        }
         _uiState.update {
             it.copy(
                 isAddDialogOpen = true,
@@ -309,10 +315,17 @@ class SubscriptionViewModel(
         notes: String,
         websiteUrl: String
     ) {
-        val sanitizedName = com.subscription.manager.util.SecurityValidator.sanitizeInput(name, maxLength = 60)
-        val sanitizedDesc = com.subscription.manager.util.SecurityValidator.sanitizeInput(description, maxLength = 200)
-        val sanitizedNotes = com.subscription.manager.util.SecurityValidator.sanitizeInput(notes, maxLength = 500)
-        val sanitizedUrl = com.subscription.manager.util.SecurityValidator.sanitizeInput(websiteUrl, maxLength = 250)
+        val now = Clock.System.now().toEpochMilliseconds()
+        if (now - lastSaveTimestamp < 1000) {
+            // Rapid-fire double-tap prevention
+            return
+        }
+        lastSaveTimestamp = now
+
+        val sanitizedName = com.subscription.manager.util.SecurityValidator.sanitizeInput(name, maxLength = com.subscription.manager.util.SecurityValidator.MAX_NAME_LENGTH)
+        val sanitizedDesc = com.subscription.manager.util.SecurityValidator.sanitizeInput(description, maxLength = com.subscription.manager.util.SecurityValidator.MAX_DESC_LENGTH)
+        val sanitizedNotes = com.subscription.manager.util.SecurityValidator.sanitizeInput(notes, maxLength = com.subscription.manager.util.SecurityValidator.MAX_NOTES_LENGTH)
+        val sanitizedUrl = com.subscription.manager.util.SecurityValidator.sanitizeInput(websiteUrl, maxLength = com.subscription.manager.util.SecurityValidator.MAX_URL_LENGTH)
 
         if (sanitizedName.isBlank()) {
             showToast("Subscription name cannot be empty")
@@ -321,6 +334,11 @@ class SubscriptionViewModel(
 
         if (!com.subscription.manager.util.SecurityValidator.validatePrice(price)) {
             showToast("Please enter a valid price between 0 and 999,999")
+            return
+        }
+
+        if (id == null && !com.subscription.manager.util.SecurityValidator.canAddSubscription(subscriptions.value.size)) {
+            showToast("Maximum subscription limit of ${com.subscription.manager.util.SecurityValidator.MAX_SUBSCRIPTIONS_PER_USER} reached.")
             return
         }
 
@@ -343,11 +361,11 @@ class SubscriptionViewModel(
                     colorHex = colorHex,
                     isActive = true,
                     reminderDaysBefore = reminderDaysBefore,
-                    notes = notes,
-                    websiteUrl = websiteUrl
+                    notes = sanitizedNotes,
+                    websiteUrl = sanitizedUrl
                 )
                 repository.addSubscription(newSub)
-                showToast("Added $name successfully!")
+                showToast("Added $sanitizedName successfully!")
             } else {
                 // Edit existing
                 val existing = subscriptions.value.find { it.id == id }
