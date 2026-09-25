@@ -143,7 +143,7 @@ class SubscriptionViewModel(
     }
 
     fun completeNewUserSetup() {
-        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false) }
+        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false, activeTab = AppTab.HOME) }
     }
 
     fun completeOAuthPasswordSetup() {
@@ -164,7 +164,7 @@ class SubscriptionViewModel(
                     _uiState.update { it.copy(isOAuthPasswordSetupRequired = true, isNewUserSetupRequired = false) }
                     showToast("Welcome to Renewo, ${user.firstName}! Please create your password.")
                 } else {
-                    _uiState.update { it.copy(isOAuthPasswordSetupRequired = false, isNewUserSetupRequired = false) }
+                    _uiState.update { it.copy(isOAuthPasswordSetupRequired = false, isNewUserSetupRequired = false, activeTab = AppTab.HOME) }
                     showToast("Welcome back, ${user.firstName}!")
                 }
             }
@@ -180,6 +180,7 @@ class SubscriptionViewModel(
             result.onSuccess { user ->
                 repository.setUserName(user.fullName)
                 repository.syncWithSupabase()
+                _uiState.update { it.copy(activeTab = AppTab.HOME) }
                 showToast("Welcome back, ${user.firstName}!")
             }
         }
@@ -188,7 +189,7 @@ class SubscriptionViewModel(
     fun signOut() {
         authRepository.signOut()
         repository.setUserName("User")
-        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false) }
+        _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false, activeTab = AppTab.HOME) }
         showToast("Signed out successfully")
     }
 
