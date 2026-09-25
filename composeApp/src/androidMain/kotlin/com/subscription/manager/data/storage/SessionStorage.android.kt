@@ -63,6 +63,14 @@ class AndroidSessionStorage(
     override fun getSavedThemeMode(): String? {
         return prefs.getString("pref_theme", null)
     }
+
+    override fun saveSubscriptionsJson(json: String) {
+        prefs.edit().putString("cached_subscriptions", json).apply()
+    }
+
+    override fun getSavedSubscriptionsJson(): String? {
+        return prefs.getString("cached_subscriptions", null)
+    }
 }
 
 actual fun createSessionStorage(): SessionStorage {

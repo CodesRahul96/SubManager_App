@@ -188,6 +188,7 @@ class SubscriptionViewModel(
 
     fun signOut() {
         authRepository.signOut()
+        repository.clearAllData()
         repository.setUserName("User")
         _uiState.update { it.copy(isNewUserSetupRequired = false, isOAuthPasswordSetupRequired = false, activeTab = AppTab.HOME) }
         showToast("Signed out successfully")

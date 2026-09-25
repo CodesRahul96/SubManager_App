@@ -22,6 +22,9 @@ interface SessionStorage {
 
     fun saveThemeMode(themeModeName: String)
     fun getSavedThemeMode(): String?
+
+    fun saveSubscriptionsJson(json: String)
+    fun getSavedSubscriptionsJson(): String?
 }
 
 expect fun createSessionStorage(): SessionStorage

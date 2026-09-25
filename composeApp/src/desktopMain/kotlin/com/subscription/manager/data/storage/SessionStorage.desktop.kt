@@ -88,6 +88,16 @@ class DesktopSessionStorage : SessionStorage {
     override fun getSavedThemeMode(): String? {
         return loadProps().getProperty("pref_theme")
     }
+
+    override fun saveSubscriptionsJson(json: String) {
+        val props = loadProps()
+        props.setProperty("cached_subscriptions", json)
+        saveProps(props)
+    }
+
+    override fun getSavedSubscriptionsJson(): String? {
+        return loadProps().getProperty("cached_subscriptions")
+    }
 }
 
 actual fun createSessionStorage(): SessionStorage = DesktopSessionStorage()

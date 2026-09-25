@@ -11,10 +11,19 @@ import kotlinx.datetime.Clock
 import com.subscription.manager.data.storage.SessionStorage
 import com.subscription.manager.data.storage.createSessionStorage
 
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+
 class SubscriptionRepository(
     private val supabaseClient: SupabaseClient? = null,
     private val sessionStorage: SessionStorage = createSessionStorage()
 ) {
+    private val json = Json {
+        ignoreUnknownKeys = true
+        isLenient = true
+        encodeDefaults = true
+    }
+
     private val _subscriptions = MutableStateFlow<List<Subscription>>(emptyList())
     val subscriptions: StateFlow<List<Subscription>> = _subscriptions.asStateFlow()
 
@@ -47,6 +56,63 @@ class SubscriptionRepository(
         sessionStorage.getSavedThemeMode()?.let { mode ->
             try { _themeMode.value = AppThemeMode.valueOf(mode) } catch (e: Exception) {}
         }
+
+        // Instantly hydrate cached subscriptions locally on startup (0-delay rendering)
+        sessionStorage.getSavedSubscriptionsJson()?.let { cachedJson ->
+            try {
+                if (cachedJson.isNotBlank()) {
+                    val cachedList = json.decodeFromString<List<Subscription>>(cachedJson)
+                    _subscriptions.value = cachedList
+                    recomputeDerivedData(cachedList)
+                }
+            } catch (e: Exception) {
+                // If corrupted, fallback gracefully
+            }
+        }
+    }
+
+    private fun recomputeDerivedData(subs: List<Subscription>) {
+        // Build payment history from subscriptions
+        val history = subs.map { sub ->
+            PaymentHistoryItem(
+                id = "tx-${sub.id}",
+                subscriptionId = sub.id,
+                name = sub.name,
+                dateFormatted = sub.nextBillingDateFormatted,
+                amount = sub.price,
+                currency = sub.originalCurrency,
+                billingCycleText = "per ${sub.billingCycle.displayName.lowercase()}",
+                colorHex = sub.colorHex,
+                category = sub.category
+            )
+        }
+        _paymentHistory.value = history
+
+        // Build spending overview for days
+        val totalDaily = subs.filter { it.isActive }.sumOf { it.monthlyEquivalent } / 30.0
+        val days = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+        val daySpendList = days.mapIndexed { index, day ->
+            val factor = when (index) {
+                4 -> 1.4 // Fri peak
+                5 -> 1.3 // Sat
+                else -> 0.85 + (index * 0.05)
+            }
+            DaySpending(
+                dayName = day,
+                amount = totalDaily * factor,
+                isPeak = index == 4
+            )
+        }
+        _weeklySpending.value = daySpendList
+    }
+
+    private fun persistSubscriptions(subs: List<Subscription>) {
+        try {
+            val serialized = json.encodeToString(subs)
+            sessionStorage.saveSubscriptionsJson(serialized)
+        } catch (e: Exception) {
+            // Log or ignore
+        }
     }
 
     fun setThemeMode(mode: AppThemeMode) {
@@ -75,13 +141,17 @@ class SubscriptionRepository(
             if (remoteResult.isSuccess) {
                 val remoteList = remoteResult.getOrThrow()
                 _subscriptions.value = remoteList
+                recomputeDerivedData(remoteList)
+                persistSubscriptions(remoteList)
             }
         }
     }
 
     suspend fun addSubscription(subscription: Subscription) {
         _subscriptions.update { current ->
-            listOf(subscription) + current
+            val updated = listOf(subscription) + current
+            persistSubscriptions(updated)
+            updated
         }
         // Also add a payment entry to history
         val newPayment = PaymentHistoryItem(
@@ -99,22 +169,30 @@ class SubscriptionRepository(
             listOf(newPayment) + current
         }
 
+        recomputeDerivedData(_subscriptions.value)
+
         // Sync to Supabase
         supabaseClient?.insertSubscription(subscription)
     }
 
     suspend fun updateSubscription(updated: Subscription) {
         _subscriptions.update { current ->
-            current.map { if (it.id == updated.id) updated else it }
+            val list = current.map { if (it.id == updated.id) updated else it }
+            persistSubscriptions(list)
+            list
         }
+        recomputeDerivedData(_subscriptions.value)
         // Sync to Supabase
         supabaseClient?.updateSubscription(updated)
     }
 
     suspend fun deleteSubscription(id: String) {
         _subscriptions.update { current ->
-            current.filterNot { it.id == id }
+            val list = current.filterNot { it.id == id }
+            persistSubscriptions(list)
+            list
         }
+        recomputeDerivedData(_subscriptions.value)
         // Sync to Supabase
         supabaseClient?.deleteSubscription(id)
     }
@@ -122,14 +200,17 @@ class SubscriptionRepository(
     suspend fun toggleSubscriptionActive(id: String) {
         var updatedSub: Subscription? = null
         _subscriptions.update { current ->
-            current.map {
+            val list = current.map {
                 if (it.id == id) {
                     val toggled = it.copy(isActive = !it.isActive)
                     updatedSub = toggled
                     toggled
                 } else it
             }
+            persistSubscriptions(list)
+            list
         }
+        recomputeDerivedData(_subscriptions.value)
         updatedSub?.let {
             supabaseClient?.updateSubscription(it)
         }
@@ -140,5 +221,6 @@ class SubscriptionRepository(
         _paymentHistory.value = emptyList()
         _weeklySpending.value = emptyList()
         _monthlyBudget.value = 0.0
+        sessionStorage.saveSubscriptionsJson("")
     }
 }
